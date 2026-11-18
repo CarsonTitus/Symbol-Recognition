@@ -22,6 +22,7 @@ import argparse
 import importlib
 import os
 import platform
+import shutil
 import sys
 
 
@@ -52,8 +53,10 @@ def main() -> int:
             print(f"  cuda:{i}    : {props.name}, {props.total_memory / 1024**3:.1f} GB VRAM")
     else:
         print("CUDA GPUs   : none (training will use the CPU - fine for tests, slow for real training)")
-        if "+cpu" in torch.__version__ and platform.system() == "Windows":
-            problems.append("PyTorch is the CPU-only build; on the tower install the CUDA build (README step 2)")
+        # If the NVIDIA driver's nvidia-smi tool exists, this machine HAS a GPU that PyTorch can't use.
+        if shutil.which("nvidia-smi"):
+            problems.append("an NVIDIA driver is installed but PyTorch can't use the GPU: "
+                            "reinstall PyTorch with GPU support (README, PyTorch install step)")
 
     for module in ["symbolcnn", "timm", "albumentations", "cv2", "numpy", "pandas",
                    "sklearn", "matplotlib", "yaml", "tqdm"]:
