@@ -125,10 +125,24 @@ def collect_kaggle(cfg: dict, raw_public: Path) -> list[Item]:
         folder = raw_public / "kaggle" / name
         if not folder.exists() or not class_map:
             continue
+        # Optional "every_nth": keep only every Nth image of each class.
+        # Four Shapes is cut from ONE video per shape, so neighbouring frames are
+        # near-identical copies. Keeping every Nth frame keeps the variety (each
+        # rotation/position) without thousands of duplicates, which would also
+        # leak into validation and make the val score look better than it is.
+        every_nth = int(settings.get("every_nth") or 1)
+        seen_per_class: dict[str, int] = {}
         # Kaggle image datasets are usually folders named after the class.
-        for path in sorted(folder.rglob("*")):
+        # Files are numbered 0.png, 1.png...; sort by number so "every Nth" follows video order.
+        def frame_order(p: Path):
+            return (str(p.parent), int(p.stem) if p.stem.isdigit() else 0, p.name)
+        for path in sorted(folder.rglob("*"), key=frame_order):
             shape = path.parent.name.lower()
             if path.suffix.lower() in IMAGE_EXTENSIONS and shape in class_map:
+                count = seen_per_class.get(shape, 0)
+                seen_per_class[shape] = count + 1
+                if count % every_nth != 0:
+                    continue  # skip near-duplicate frame
                 items.append(Item(f"kaggle.{name}", shape, class_map[shape], "",
                                   str(path.relative_to(raw_public)), "file", path))
     return items
