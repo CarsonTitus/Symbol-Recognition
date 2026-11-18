@@ -54,14 +54,25 @@ prepare:
 # Public datasets (CLAUDE.md §5a). scripts/download_public.py downloads them into
 # paths.raw_public; scripts/prepare_data.py uses each class_map to sort their
 # images into our three classes. A source class NOT listed in its class_map is skipped.
+#
+# TEAM DECISION (2026-11-18): for now we train on only three KINDS of drawn shape:
+#   triangles                                                   -> triangle
+#   quadrilaterals (4 corners: square, rectangle, rhombus/diamond,
+#                   parallelogram, trapezoid)                    -> unknown_symbol
+#   ellipses (circles and ovals)                                -> unknown_symbol
+# Every other shape (stars, hexagons, squiggles, hearts...) is left out, so it can be
+# used in the never-seen-shapes test (test_novel_shapes) instead.
+# Kites ARE quadrilaterals but stay out: many look like triangles (see geometric_shapes_mathematics). The three outputs
+# from the submitted scope (CLAUDE.md §2) do not change.
+# Other shapes are never put in no_symbol: that class means "nothing drawn here".
 public_data:
   hds:                        # Hand-Drawn Shapes, CC BY 4.0, 70x70 drawings by 37 people
     git_url: https://github.com/frobertpixto/hand-drawn-shapes-dataset
     class_map:
       triangle: triangle
-      rectangle: unknown_symbol
-      ellipse: unknown_symbol
-      other: unknown_symbol
+      rectangle: unknown_symbol   # quadrilateral (includes squares)
+      ellipse: unknown_symbol     # ellipse (includes circles)
+      # "other" (hearts, letters, crescents, pentagons...) left out: not a triangle, quadrilateral or ellipse.
   quickdraw:                  # Google Quick, Draw!, CC BY 4.0, 28x28 doodles (white on black)
     base_url: https://storage.googleapis.com/quickdraw_dataset/full/numpy_bitmap
     per_category_cap: 3000    # only the first 3000 drawings of each category are downloaded
@@ -69,17 +80,13 @@ public_data:
     # they would teach the model that triangles are "unknown". ("arrow" does not exist.)
     class_map:
       triangle: triangle
-      circle: unknown_symbol
-      square: unknown_symbol
-      hexagon: unknown_symbol
-      octagon: unknown_symbol
-      star: unknown_symbol
-      zigzag: unknown_symbol
-      line: unknown_symbol
-      lightning: unknown_symbol
-      diamond: unknown_symbol
-      smiley face: unknown_symbol
-      squiggle: unknown_symbol
+      circle: unknown_symbol      # ellipse
+      square: unknown_symbol      # quadrilateral
+      # "diamond" is NOT used even though a rhombus is a quadrilateral: checked 2026-11-18,
+      # about 1 in 4 Quick Draw "diamonds" is a plain upside-down triangle (a gem shape),
+      # and they caused 40 of the 59 false triangle alarms in the first Stage A run.
+      # Not used for now (TEAM DECISION above). Still downloaded, so adding one back is
+      # one line: hexagon, octagon, star, zigzag, line, lightning, smiley face, squiggle.
   hf_geometric_shapes:        # Hugging Face 0-ma/geometric-shapes, MIT license, 50x50 synthetic
     repo_id: 0-ma/geometric-shapes
     # Label names are "1".."6"; "1" means text on a colored background with NO shape.
@@ -89,25 +96,24 @@ public_data:
   kaggle:                     # need a Kaggle API token (README); skipped if none is set up
     geometric_shapes_mathematics:  # CC0, 224x224 computer-generated "hand-drawn-style" outlines (Perlin noise)
       slug: reevald/geometric-shapes-mathematics
-      # Inspected 2026-11-18. "kite" is LEFT OUT on purpose: many kites are long and
+      # Inspected 2026-11-18: "kite" is LEFT OUT. Kites are quadrilaterals, but many are long and
       # thin with a tiny 4th corner, so they look like triangles and would be noisy labels.
-      # Trapezoids clearly showed 4 corners, so they stay as useful "4 corners = not a triangle" examples.
       class_map:
         triangle: triangle
-        trapezoid: unknown_symbol
+        square: unknown_symbol          # quadrilaterals
+        rectangle: unknown_symbol
         rhombus: unknown_symbol
         parallelogram: unknown_symbol
-        square: unknown_symbol
-        rectangle: unknown_symbol
-        circle: unknown_symbol
+        trapezoid: unknown_symbol
+        circle: unknown_symbol          # ellipse
     four_shapes:              # CC0, 200x200 FILLED black silhouettes cut from one video per shape
       slug: smeschke/four-shapes
       every_nth: 12           # consecutive video frames are near-duplicates: keep 1 in 12 (~310 per shape)
       class_map:
         triangle: triangle
-        square: unknown_symbol
-        circle: unknown_symbol
-        star: unknown_symbol
+        square: unknown_symbol          # quadrilateral
+        circle: unknown_symbol          # ellipse
+        # star left out (TEAM DECISION above)
 
 model:
   name: mobilenetv3_large_100 # timm model name (phone-sized CNN, ~5.5M parameters)
