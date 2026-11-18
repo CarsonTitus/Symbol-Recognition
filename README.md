@@ -213,6 +213,54 @@ This sorts every downloaded image (and our own photos, once there are some in `d
 
 How to add our photos and fill in `metadata.csv`: see [`data/README.md`](data/README.md).
 
+## Train the model
+
+```bash
+python scripts/train.py --config configs/stage_a.yaml --device cuda:0
+```
+
+This trains the pretrained MobileNetV3 on `data/processed/train` and checks it on `data/processed/val` after every epoch. Each run gets its own folder, `runs/<date-time>_<name>/`, containing:
+
+| File | What |
+|---|---|
+| `config.yaml` | the exact settings used |
+| `metrics.csv` | one row per epoch: losses, accuracies, **validation reward** and **reward % of max**, learning rate, time |
+| `best.pt` / `last.pt` | the model with the best validation reward so far / the latest model |
+| `what_the_model_sees.png` | the first training batch after augmentation |
+| `tensorboard/` | data for the live charts (below) |
+
+Training stops early if the validation reward hasn't improved for 5 epochs. Press **Ctrl+C** to stop at any time; `best.pt` is kept.
+
+Useful variations:
+
+- `--device cuda:1`: use the second GPU. It also drives the monitor, so use `cuda:0` for the main run.
+- `--data-fraction 0.25`: train on 25% of the training data (learning-curve runs).
+- `--model tiny_cnn`: the small from-scratch CNN, for comparison.
+- `--device cpu --max-batches 5`: a quick check that everything runs, on any machine.
+
+### Watch it train (TensorBoard)
+
+Open a **second terminal** while training runs:
+
+```bash
+cd ~/Symbol-Recognition-
+```
+
+```bash
+source .venv/bin/activate
+```
+
+```bash
+tensorboard --logdir runs
+```
+
+Then open **http://localhost:6006** in the tower's web browser. It refreshes every 30 seconds.
+
+- **Scalars** (or **Time Series**): `loss` and `accuracy` (train vs val), `reward/val_average` (the reward convergence graph), `reward/val_percent_of_max`, `learning_rate`.
+- **Images**: `train/what_the_model_sees` is a snapshot of the exact batch being trained on, taken every 200 batches. `val/most_confident_mistakes` shows the validation images the model gets most confidently wrong, after every epoch.
+
+Press Ctrl+C in that terminal to stop TensorBoard; training is unaffected.
+
 ## Settings
 
 All settings live in [`configs/`](configs/):
@@ -237,8 +285,8 @@ Results report the average reward and the **reward as a percentage of the best p
 ```
 configs/            settings files (YAML)
 data/               datasets: NOT in git except README.md and SOURCES.md
-src/symbolcnn/      project code: config.py, reward.py, utils.py, imageprep.py (more coming)
-scripts/            command-line tools: check_env.py, download_public.py, prepare_data.py (more coming)
+src/symbolcnn/      project code: config, reward, utils, imageprep, datasets, models, plots
+scripts/            command-line tools: check_env, download_public, prepare_data, train (more coming)
 tests/              pytest unit tests
 results/            small final plots/tables for the presentation
 runs/               one folder per training run: NOT in git
@@ -253,7 +301,8 @@ runs/               one folder per training run: NOT in git
 - [x] `prepare_data.py` (drawer-based split, manifest, 224×224 images)
 - [ ] Kaggle licenses in `data/SOURCES.md` verified (once a Kaggle token is added)
 - [ ] At least 100 own photos per class, with metadata
-- [ ] `train.py` Stage A
+- [x] `train.py` written and tested on CPU
+- [ ] `train.py` Stage A full run on the tower GPU
 - [ ] `evaluate.py`
 - [ ] `learning_curve.py` (10/25/50/100%)
 - [ ] `predict.py` demo

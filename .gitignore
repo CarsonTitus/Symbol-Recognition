@@ -17,6 +17,7 @@ dist/
 data/*
 !data/README.md
 !data/SOURCES.md
+!data/metadata_template.csv
 
 # Training runs, exported models and weights
 runs/

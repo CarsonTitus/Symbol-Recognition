@@ -119,3 +119,5 @@ train:
   finetune_epochs: 20         # phase 2: the whole network learns
   finetune_lr: 1.0e-4
   scheduler: cosine           # cosine schedule = learning rate slowly lowers to ~0
+  log_images_every: 200       # every N batches, save a snapshot of the batch being trained on (TensorBoard)
+  mistakes_to_show: 24        # after each epoch, show the most confident wrong validation answers

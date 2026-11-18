@@ -26,6 +26,16 @@ data/
 
 ## `raw_own/metadata.csv` columns
 
+Start from the template: copy `data/metadata_template.csv` to `data/raw_own/metadata.csv`, delete the three EXAMPLE rows, and add one row per photo. It opens in Excel, Google Sheets or LibreOffice Calc; save it as CSV.
+
+```bash
+mkdir -p data/raw_own/no_symbol data/raw_own/unknown_symbol data/raw_own/triangle data/raw_own/novel_shapes data/raw_own/originals
+```
+
+```bash
+cp data/metadata_template.csv data/raw_own/metadata.csv
+```
+
 ```
 filename,class,drawer_id,pen,surface,distance_m,angle_deg,lighting,notes
 IMG_0001.jpg,triangle,D01,sharpie_thin,white_notecard,1,30,room,slightly open corner
