@@ -95,6 +95,8 @@ Notes:
 | `unknown_symbol` | A drawn mark that is **not** a triangle | Circles, squares, rectangles, stars, X's, arrows, squiggles, other doodles |
 | `triangle` | A hand-drawn triangle | Any size, rotation, pen, or line quality; open or slightly sloppy triangles still count |
 
+**Team decision (2026-11-18): for now, train on only three kinds of drawn shape.** `triangle` ← triangles; `unknown_symbol` ← **quadrilaterals** (square, rectangle, diamond/rhombus, parallelogram, trapezoid) and **ellipses** (circles, ovals) only. Kites stay out (thin ones look like triangles). All other shapes (stars, X's, arrows, squiggles, hexagons...) stay out of training and are used for the never-seen-shapes test instead. They never go in `no_symbol`. The three outputs in §2 are unchanged. Set in `configs/default.yaml` (`public_data` class maps).
+
 **How "unknown" works (design decision):** `unknown_symbol` is its own trained category, learned from many non-triangle shapes. As a backup safety net, if the model's top confidence is below a threshold (default 0.6, set in config), the app reports `unknown_symbol` instead of guessing. Report results both with and without the threshold.
 
 ---
