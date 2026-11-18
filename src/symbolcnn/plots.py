@@ -12,6 +12,7 @@ Why:
     confusion_matrix_figure()    true vs predicted grid with counts and row percentages
     reward_convergence_figure()  average validation reward per epoch (CLAUDE.md §2)
     training_curves_figure()     loss and accuracy per epoch, train vs validation
+    learning_curve_figure()      accuracy and reward vs amount of training data
 """
 from __future__ import annotations
 
@@ -107,5 +108,30 @@ def training_curves_figure(epochs, train_loss, val_loss, train_acc, val_acc):
         axis.set_xlabel("Epoch")
         axis.legend()
         axis.grid(alpha=0.3)
+    figure.tight_layout()
+    return figure
+
+
+def learning_curve_figure(table, split: str):
+    """Accuracy and reward % of max against the number of training images (CLAUDE.md §8 item 6).
+
+    table: one row per fraction with columns fraction, train_images, accuracy,
+    reward_percent_of_max. Each point is labeled with its fraction (10%, 25%, ...).
+    A curve that is still rising at the right means more data would still help.
+    """
+    figure, axis = plt.subplots(figsize=(7, 4))
+    x = table["train_images"]
+    axis.plot(x, table["accuracy"] * 100, marker="o", label="accuracy %")
+    axis.plot(x, table["reward_percent_of_max"], marker="s", label="reward % of max")
+    for images, accuracy, fraction in zip(x, table["accuracy"] * 100, table["fraction"]):
+        axis.annotate(f"{fraction:.0%}", (images, accuracy), textcoords="offset points", xytext=(0, 8),
+                      ha="center", fontsize=8)
+    axis.axhline(90, linestyle="--", color="gray", label="90% target")
+    axis.set_xscale("log")      # 10% -> 100% is a 10x jump, so a log scale spaces the points evenly
+    axis.set_xlabel("Training images (log scale)")
+    axis.set_ylabel("%")
+    axis.set_title(f"Learning curve (scored on {split})", fontsize=10)
+    axis.legend(loc="lower right")
+    axis.grid(alpha=0.3)
     figure.tight_layout()
     return figure
