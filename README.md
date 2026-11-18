@@ -34,8 +34,18 @@ Install `uv` (one time per user account):
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
+Tell the terminal where `uv` was installed, now and in every future terminal:
+
 ```bash
-source ~/.local/bin/env
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+```
+
+```bash
+uv --version
 ```
 
 Get the code and create the Python 3.12 virtual environment (a private folder of packages for this project):

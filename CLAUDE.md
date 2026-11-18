@@ -117,7 +117,7 @@ Notes:
 ```bash
 nvidia-smi                                          # confirm GPU model, memory (VRAM), driver version
 curl -LsSf https://astral.sh/uv/install.sh | sh     # uv: installs Python 3.12 without sudo
-source ~/.local/bin/env
+export PATH="$HOME/.local/bin:$PATH"           # make uv findable in this terminal
 uv venv --python 3.12 .venv
 source .venv/bin/activate
 uv pip install torch torchvision                    # Linux default build includes CUDA (NVIDIA's GPU platform)
