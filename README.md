@@ -299,7 +299,7 @@ runs/               one folder per training run: NOT in git
 - [x] `reward.py` with passing unit tests
 - [x] `download_public.py` (HDS, Quick, Draw!, Hugging Face; Kaggle once a token is added)
 - [x] `prepare_data.py` (drawer-based split, manifest, 224×224 images)
-- [ ] Kaggle licenses in `data/SOURCES.md` verified (once a Kaggle token is added)
+- [x] Kaggle datasets downloaded, mapped and licenses verified in `data/SOURCES.md` (both CC0)
 - [ ] At least 100 own photos per class, with metadata
 - [x] `train.py` written and tested on CPU
 - [ ] `train.py` Stage A full run on the tower GPU
@@ -312,4 +312,5 @@ runs/               one folder per training run: NOT in git
 - Hand-drawn Shapes (HDS) Dataset © 2022 by Francois Robert, licensed under CC BY 4.0.
 - Quick, Draw! data made available by Google, Inc. under CC BY 4.0.
 - Geometric Shapes Dataset (`0-ma/geometric-shapes`), MIT license.
+- Geometric Shapes Mathematics (Kaggle, Moch. Galang Rivaldo) and Four Shapes (Kaggle, smeschke), both CC0 1.0.
 - Other dataset licenses: see [`data/SOURCES.md`](data/SOURCES.md).

@@ -87,11 +87,22 @@ public_data:
     class_map:
       "1": no_symbol
   kaggle:                     # need a Kaggle API token (README); skipped if none is set up
-    geometric_shapes_mathematics:
+    geometric_shapes_mathematics:  # CC0, 224x224 computer-generated "hand-drawn-style" outlines (Perlin noise)
       slug: reevald/geometric-shapes-mathematics
-      class_map: {}           # filled in after the team inspects samples (kite/trapezoid look triangle-ish)
-    four_shapes:
+      # Inspected 2026-11-18. "kite" is LEFT OUT on purpose: many kites are long and
+      # thin with a tiny 4th corner, so they look like triangles and would be noisy labels.
+      # Trapezoids clearly showed 4 corners, so they stay as useful "4 corners = not a triangle" examples.
+      class_map:
+        triangle: triangle
+        trapezoid: unknown_symbol
+        rhombus: unknown_symbol
+        parallelogram: unknown_symbol
+        square: unknown_symbol
+        rectangle: unknown_symbol
+        circle: unknown_symbol
+    four_shapes:              # CC0, 200x200 FILLED black silhouettes cut from one video per shape
       slug: smeschke/four-shapes
+      every_nth: 12           # consecutive video frames are near-duplicates: keep 1 in 12 (~310 per shape)
       class_map:
         triangle: triangle
         square: unknown_symbol
