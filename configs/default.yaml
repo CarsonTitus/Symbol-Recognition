@@ -43,6 +43,14 @@ image:
   size: 224                   # images are padded to square, then resized to 224x224 RGB
   allow_flips: true           # mirror-flip augmentation; fine for triangles, off for asymmetric symbols
 
+# How scripts/prepare_data.py splits images (CLAUDE.md §5c).
+prepare:
+  # Our own photos are split BY DRAWER: every photo by one person lands in one split only.
+  own_split_shares: {train: 0.70, val: 0.15, test: 0.15}
+  # Public data is never used for testing (test = our own photos only).
+  public_val_share: 0.15      # 85% train / 15% validation
+  workers: 8                  # parallel processes for resizing images (tower: up to ~40)
+
 # Public datasets (CLAUDE.md §5a). scripts/download_public.py downloads them into
 # paths.raw_public; scripts/prepare_data.py uses each class_map to sort their
 # images into our three classes. A source class NOT listed in its class_map is skipped.

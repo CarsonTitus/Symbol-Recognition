@@ -197,6 +197,22 @@ chmod 600 ~/.kaggle/access_token
 python scripts/download_public.py --sources kaggle
 ```
 
+## Build the training folders
+
+```bash
+python scripts/prepare_data.py --workers 40
+```
+
+This sorts every downloaded image (and our own photos, once there are some in `data/raw_own/`) into `data/processed/{train,val,test}/{no_symbol,unknown_symbol,triangle}/` as 224×224 RGB images, and writes `data/processed/manifest.csv`. It takes about a minute on the tower and about 1 GB of disk.
+
+- Our photos are split **by drawer** (70/15/15), so one person's drawings never appear in two splits.
+- Public data only goes into train/val. **Test = our own photos only.**
+- Photos marked `novel_shape` in `metadata.csv` go only to `test_novel_shapes/`.
+- It rebuilds `data/processed/` from scratch each time, and the same seed gives the same split.
+- `--limit-per-class 200` makes a small version for quick trial runs.
+
+How to add our photos and fill in `metadata.csv`: see [`data/README.md`](data/README.md).
+
 ## Settings
 
 All settings live in [`configs/`](configs/):
@@ -221,8 +237,8 @@ Results report the average reward and the **reward as a percentage of the best p
 ```
 configs/            settings files (YAML)
 data/               datasets: NOT in git except README.md and SOURCES.md
-src/symbolcnn/      project code: config.py, reward.py, utils.py (more coming)
-scripts/            command-line tools: check_env.py, download_public.py (more coming)
+src/symbolcnn/      project code: config.py, reward.py, utils.py, imageprep.py (more coming)
+scripts/            command-line tools: check_env.py, download_public.py, prepare_data.py (more coming)
 tests/              pytest unit tests
 results/            small final plots/tables for the presentation
 runs/               one folder per training run: NOT in git
@@ -234,7 +250,8 @@ runs/               one folder per training run: NOT in git
 - [x] Environment verified on the tower (2× RTX 4000 Ada, Python 3.12, all checks and tests pass)
 - [x] `reward.py` with passing unit tests
 - [x] `download_public.py` (HDS, Quick, Draw!, Hugging Face; Kaggle once a token is added)
-- [ ] `prepare_data.py`; Kaggle licenses in `data/SOURCES.md` verified
+- [x] `prepare_data.py` (drawer-based split, manifest, 224×224 images)
+- [ ] Kaggle licenses in `data/SOURCES.md` verified (once a Kaggle token is added)
 - [ ] At least 100 own photos per class, with metadata
 - [ ] `train.py` Stage A
 - [ ] `evaluate.py`
