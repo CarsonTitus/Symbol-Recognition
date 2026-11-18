@@ -71,3 +71,20 @@ def validate_config(cfg: dict) -> None:
 
     if "unknown_symbol" not in classes:
         raise ValueError("config 'classes' must include 'unknown_symbol' (the threshold fallback class)")
+
+    # Every public dataset's class_map must point at one of OUR classes (catches typos like "triangel").
+    for name, class_map in _all_class_maps(cfg.get("public_data", {})):
+        for source_class, our_class in class_map.items():
+            if our_class not in classes:
+                raise ValueError(f"public_data {name}: '{source_class}' maps to '{our_class}', "
+                                 f"which is not one of {classes}")
+
+
+def _all_class_maps(public_data: dict):
+    """Yield (dataset name, class_map) for every public dataset in the config, including Kaggle ones."""
+    for name, settings in public_data.items():
+        if name == "kaggle":
+            for kaggle_name, kaggle_settings in settings.items():
+                yield f"kaggle.{kaggle_name}", kaggle_settings.get("class_map") or {}
+        else:
+            yield name, settings.get("class_map") or {}

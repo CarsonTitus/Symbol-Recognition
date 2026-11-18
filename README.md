@@ -154,7 +154,48 @@ python scripts/check_env.py --download-weights
 pytest
 ```
 
-`tests/test_reward.py` proves the reward math matches the submitted rubric; `tests/test_config.py` checks the settings files.
+`tests/test_reward.py` proves the reward math matches the submitted rubric; `tests/test_config.py` checks the settings files; `tests/test_download_public.py` checks the download script without using the internet.
+
+## Download the public datasets
+
+```bash
+python scripts/download_public.py
+```
+
+This downloads about 320 MB into `data/raw_public/` (which git ignores) and takes about a minute:
+
+| Folder | Dataset | What |
+|---|---|---|
+| `hds/` | Hand-Drawn Shapes | 27,292 drawings by 37 people: triangle, rectangle, ellipse, other |
+| `quickdraw/` | Google Quick, Draw! | the first 3,000 doodles of 12 shape categories (only that part of each file is downloaded) |
+| `hf_geometric_shapes/` | Hugging Face `0-ma/geometric-shapes` | synthetic images; the "text only, no shape" ones become `no_symbol` |
+| `kaggle/` | two Kaggle datasets | needs a Kaggle API token (below); skipped without one |
+
+Running it again skips anything already downloaded. Use `--force` to download again, and `--sources hds quickdraw` to choose specific datasets. Which datasets and categories are used, and which of our classes each maps to, is set under `public_data:` in `configs/default.yaml`.
+
+### Kaggle API token
+
+1. Sign in at https://www.kaggle.com (free account).
+2. Go to https://www.kaggle.com/settings/api, then **Generate New Token**, and copy the token.
+3. On the tower, save it (paste the token between the quotes):
+
+```bash
+mkdir -p ~/.kaggle
+```
+
+```bash
+echo "PASTE_TOKEN_HERE" > ~/.kaggle/access_token
+```
+
+```bash
+chmod 600 ~/.kaggle/access_token
+```
+
+`chmod 600` makes the file readable only by you. **Never commit the token or paste it into chat.** Then:
+
+```bash
+python scripts/download_public.py --sources kaggle
+```
 
 ## Settings
 
@@ -181,7 +222,7 @@ Results report the average reward and the **reward as a percentage of the best p
 configs/            settings files (YAML)
 data/               datasets: NOT in git except README.md and SOURCES.md
 src/symbolcnn/      project code: config.py, reward.py, utils.py (more coming)
-scripts/            command-line tools: check_env.py (more coming)
+scripts/            command-line tools: check_env.py, download_public.py (more coming)
 tests/              pytest unit tests
 results/            small final plots/tables for the presentation
 runs/               one folder per training run: NOT in git
@@ -192,7 +233,8 @@ runs/               one folder per training run: NOT in git
 - [x] Repo structure, README, requirements
 - [x] Environment verified on the tower (2× RTX 4000 Ada, Python 3.12, all checks and tests pass)
 - [x] `reward.py` with passing unit tests
-- [ ] `download_public.py` and `prepare_data.py`; `data/SOURCES.md` licenses verified
+- [x] `download_public.py` (HDS, Quick, Draw!, Hugging Face; Kaggle once a token is added)
+- [ ] `prepare_data.py`; Kaggle licenses in `data/SOURCES.md` verified
 - [ ] At least 100 own photos per class, with metadata
 - [ ] `train.py` Stage A
 - [ ] `evaluate.py`
@@ -202,4 +244,6 @@ runs/               one folder per training run: NOT in git
 ## Data credits
 
 - Hand-drawn Shapes (HDS) Dataset © 2022 by Francois Robert, licensed under CC BY 4.0.
+- Quick, Draw! data made available by Google, Inc. under CC BY 4.0.
+- Geometric Shapes Dataset (`0-ma/geometric-shapes`), MIT license.
 - Other dataset licenses: see [`data/SOURCES.md`](data/SOURCES.md).

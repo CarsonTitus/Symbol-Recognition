@@ -20,6 +20,7 @@ pyyaml>=6.0
 tqdm>=4.66
 tensorboard>=2.17
 kaggle>=1.6
+six>=1.16                      # kaggle 2.x needs this but forgets to install it
 datasets>=3.0
 huggingface_hub>=0.25
 pytest>=8.0

@@ -43,6 +43,53 @@ image:
   size: 224                   # images are padded to square, then resized to 224x224 RGB
   allow_flips: true           # mirror-flip augmentation; fine for triangles, off for asymmetric symbols
 
+# Public datasets (CLAUDE.md §5a). scripts/download_public.py downloads them into
+# paths.raw_public; scripts/prepare_data.py uses each class_map to sort their
+# images into our three classes. A source class NOT listed in its class_map is skipped.
+public_data:
+  hds:                        # Hand-Drawn Shapes, CC BY 4.0, 70x70 drawings by 37 people
+    git_url: https://github.com/frobertpixto/hand-drawn-shapes-dataset
+    class_map:
+      triangle: triangle
+      rectangle: unknown_symbol
+      ellipse: unknown_symbol
+      other: unknown_symbol
+  quickdraw:                  # Google Quick, Draw!, CC BY 4.0, 28x28 doodles (white on black)
+    base_url: https://storage.googleapis.com/quickdraw_dataset/full/numpy_bitmap
+    per_category_cap: 3000    # only the first 3000 drawings of each category are downloaded
+    # Triangle-like categories (mountain, tent, pizza...) are deliberately NOT listed:
+    # they would teach the model that triangles are "unknown". ("arrow" does not exist.)
+    class_map:
+      triangle: triangle
+      circle: unknown_symbol
+      square: unknown_symbol
+      hexagon: unknown_symbol
+      octagon: unknown_symbol
+      star: unknown_symbol
+      zigzag: unknown_symbol
+      line: unknown_symbol
+      lightning: unknown_symbol
+      diamond: unknown_symbol
+      smiley face: unknown_symbol
+      squiggle: unknown_symbol
+  hf_geometric_shapes:        # Hugging Face 0-ma/geometric-shapes, MIT license, 50x50 synthetic
+    repo_id: 0-ma/geometric-shapes
+    # Label names are "1".."6"; "1" means text on a colored background with NO shape.
+    # Only that one is used (as a minority of no_symbol); its shapes are not hand-drawn.
+    class_map:
+      "1": no_symbol
+  kaggle:                     # need a Kaggle API token (README); skipped if none is set up
+    geometric_shapes_mathematics:
+      slug: reevald/geometric-shapes-mathematics
+      class_map: {}           # filled in after the team inspects samples (kite/trapezoid look triangle-ish)
+    four_shapes:
+      slug: smeschke/four-shapes
+      class_map:
+        triangle: triangle
+        square: unknown_symbol
+        circle: unknown_symbol
+        star: unknown_symbol
+
 model:
   name: mobilenetv3_large_100 # timm model name (phone-sized CNN, ~5.5M parameters)
   pretrained: true            # start from ImageNet weights (downloaded from Hugging Face)
