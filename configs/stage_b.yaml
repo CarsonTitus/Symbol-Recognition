@@ -1,0 +1,16 @@
+# ---------------------------------------------------------------------------
+# Stage B (CLAUDE.md §7): fine-tune on our own photos, starting from the best
+# Stage A checkpoint, mixed with ~20% public data so general shapes aren't forgotten.
+# Starts from default.yaml; only the settings listed here change.
+# ---------------------------------------------------------------------------
+base: default.yaml
+run_name: stage_b
+
+stage_b:
+  init_checkpoint: null       # set to runs/<stage_a_run>/best.pt (or pass --init on the command line)
+  public_data_share: 0.2      # ~20% of each epoch's images come from public datasets
+
+train:
+  frozen_epochs: 0            # no frozen phase: the whole network is already adapted
+  finetune_epochs: 12         # 10-15 epochs
+  finetune_lr: 3.0e-5

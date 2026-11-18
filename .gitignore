@@ -1,0 +1,40 @@
+# ---------------------------------------------------------------------------
+# What this does: tells git which files NEVER to commit.
+# Why: datasets, model weights and secrets are large or private (CLAUDE.md §0, §9).
+# ---------------------------------------------------------------------------
+
+# Python virtual environment and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+
+# Data: everything under data/ except the two markdown files that describe it
+data/*
+!data/README.md
+!data/SOURCES.md
+
+# Training runs, exported models and weights
+runs/
+exports/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.tflite
+*.onnx
+
+# Secrets: Kaggle API token (never commit it)
+kaggle.json
+.env
+
+# Editor / OS clutter
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

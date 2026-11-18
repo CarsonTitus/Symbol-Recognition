@@ -1,0 +1,26 @@
+# ---------------------------------------------------------------------------
+# What this does: lists the Python packages the project needs.
+# Why torch/torchvision are NOT here: each machine needs a different PyTorch build
+#   - tower PC (NVIDIA GPUs) -> CUDA build
+#   - laptop / cloud (no NVIDIA GPU) -> CPU build
+# Install PyTorch FIRST using the README instructions, then run:
+#   pip install -r requirements.txt
+# The last line ("-e .") installs our own code (src/symbolcnn) so scripts can
+# "import symbolcnn" from any folder.
+# Minimum versions are the ones tested together on 2026-11-18.
+# ---------------------------------------------------------------------------
+timm>=1.0.31
+albumentations>=2.0.8
+opencv-python-headless>=4.10   # OpenCV without GUI windows; same on Windows and Linux
+numpy>=2.0
+pandas>=2.2
+scikit-learn>=1.5
+matplotlib>=3.9
+pyyaml>=6.0
+tqdm>=4.66
+tensorboard>=2.17
+kaggle>=1.6
+datasets>=3.0
+huggingface_hub>=0.25
+pytest>=8.0
+-e .

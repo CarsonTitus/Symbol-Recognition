@@ -1,0 +1,12 @@
+# ---------------------------------------------------------------------------
+# Stage A (CLAUDE.md §7): pretrain on public data plus our own training photos.
+# Starts from default.yaml; only the settings listed here change.
+# ---------------------------------------------------------------------------
+base: default.yaml
+run_name: stage_a
+
+train:
+  frozen_epochs: 3            # backbone frozen, lr 1e-3
+  frozen_lr: 1.0e-3
+  finetune_epochs: 20         # everything unfrozen, lr 1e-4, cosine schedule
+  finetune_lr: 1.0e-4
