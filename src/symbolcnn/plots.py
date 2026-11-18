@@ -9,7 +9,9 @@ What this does:
 Why:
     Seeing the actual images is the quickest way to spot problems (bad labels,
     augmentation that goes too far, a class the model keeps confusing).
-    More charts (confusion matrix, reward convergence) will be added here for evaluate.py.
+    confusion_matrix_figure()    true vs predicted grid with counts and row percentages
+    reward_convergence_figure()  average validation reward per epoch (CLAUDE.md §2)
+    training_curves_figure()     loss and accuracy per epoch, train vs validation
 """
 from __future__ import annotations
 
@@ -39,3 +41,71 @@ def image_grid(images: np.ndarray, captions: list[str], columns: int = 8, title:
 def save_figure(figure, path) -> None:
     figure.savefig(path, dpi=110)
     plt.close(figure)
+
+
+def confusion_matrix_figure(counts: np.ndarray, percents: np.ndarray, classes: list[str], title: str):
+    """Confusion matrix picture: each cell shows the count and the row percentage.
+
+    Rows = true label, columns = predicted label. Darker = larger share of that row,
+    so a good model has a dark diagonal from top-left to bottom-right.
+    """
+    figure, axis = plt.subplots(figsize=(6, 5))
+    image = axis.imshow(percents, cmap="Blues", vmin=0, vmax=100)
+    figure.colorbar(image, ax=axis, label="% of the true class (row)")
+    axis.set_xticks(range(len(classes)), classes, rotation=20)
+    axis.set_yticks(range(len(classes)), classes)
+    axis.set_xlabel("Predicted label")
+    axis.set_ylabel("True label")
+    for row in range(len(classes)):
+        for col in range(len(classes)):
+            color = "white" if percents[row, col] > 60 else "black"   # readable on dark cells
+            axis.text(col, row, f"{counts[row, col]}\n({percents[row, col]:.1f}%)",
+                      ha="center", va="center", color=color, fontsize=10)
+    axis.set_title(title, fontsize=10)
+    figure.tight_layout()
+    return figure
+
+
+def reward_convergence_figure(epochs, rewards, max_reward: float, phases=None, title: str = ""):
+    """Average validation reward per epoch, with a dashed line at the best possible reward.
+
+    phases: optional list (one per epoch) like "frozen"/"finetune". A dotted vertical
+    line is drawn wherever the phase changes (e.g. backbone unfrozen, or Stage A -> Stage B).
+    """
+    figure, axis = plt.subplots(figsize=(7, 4))
+    axis.plot(epochs, rewards, marker="o", label="average validation reward")
+    axis.axhline(max_reward, linestyle="--", color="gray", label=f"best possible ({max_reward:.3f})")
+    if phases is not None:
+        for i in range(1, len(phases)):
+            if phases[i] != phases[i - 1]:
+                boundary = (epochs[i - 1] + epochs[i]) / 2
+                axis.axvline(boundary, linestyle=":", color="black")
+                axis.text(boundary, axis.get_ylim()[0], f" {phases[i]}", va="bottom", fontsize=8)
+    axis.set_xlabel("Epoch")
+    axis.set_ylabel("Average reward per image")
+    axis.set_title(title or "Reward convergence", fontsize=10)
+    axis.legend(loc="lower right")
+    axis.grid(alpha=0.3)
+    figure.tight_layout()
+    return figure
+
+
+def training_curves_figure(epochs, train_loss, val_loss, train_acc, val_acc):
+    """Loss and accuracy per epoch, train vs validation, side by side.
+
+    A growing gap (train keeps improving, validation doesn't) is the sign of
+    overfitting: the model memorizing training images.
+    """
+    figure, (left, right) = plt.subplots(1, 2, figsize=(11, 4))
+    left.plot(epochs, train_loss, marker="o", label="train")
+    left.plot(epochs, val_loss, marker="o", label="validation")
+    left.set_title("Loss (lower is better)", fontsize=10)
+    right.plot(epochs, np.asarray(train_acc) * 100, marker="o", label="train")
+    right.plot(epochs, np.asarray(val_acc) * 100, marker="o", label="validation")
+    right.set_title("Accuracy % (higher is better)", fontsize=10)
+    for axis in (left, right):
+        axis.set_xlabel("Epoch")
+        axis.legend()
+        axis.grid(alpha=0.3)
+    figure.tight_layout()
+    return figure
