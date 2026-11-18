@@ -103,8 +103,8 @@ Notes:
 
 | Part | Reported | Notes |
 |---|---|---|
-| CPU | AMD EPYC 7443P | 24 cores / 48 threads. Plenty for loading data; use `num_workers` 8–16. |
-| GPU | 2× "RTX 4000" | Confirm the exact model with `nvidia-smi`. It could be the Quadro RTX 4000 (8 GB), RTX A4000 (16 GB) or RTX 4000 Ada (20 GB). **Any of these is far more than enough.** |
+| CPU | AMD EPYC 7443P | 24 cores / 48 threads (confirmed: 48). Plenty for loading data; use `num_workers` 8–16. |
+| GPU | 2× NVIDIA RTX 4000 Ada Generation, 20 GB VRAM each | Confirmed 2026-11-18 (driver 580.178.04, PyTorch 2.15.0+cu132). **Far more than enough.** `cuda:1` also drives the monitor (desktop, browser), so use `cuda:0` for the main run and `cuda:1` for the second experiment. |
 | RAM | ~256 GB likely | Device Manager showed ~270 GB; 8 sticks × 32 GB = 256 GB is most likely. Confirm with `free -h`. More than enough. |
 | OS | Ubuntu Linux | System Python is 3.10 (too old); use `uv` to get Python 3.12 (see setup below). |
 
@@ -411,7 +411,7 @@ What the existing app repo (`SOCOMIgnite2026`) does today, and what to change:
 
 ## 14. Open questions for the team
 
-1. Exact GPU model and VRAM (`nvidia-smi`)?
+1. ~~Exact GPU model and VRAM?~~ 2× RTX 4000 Ada, 20 GB each (2026-11-18). Still open: confirm RAM with `free -h`.
 2. ~~Is Python already installed on the tower?~~ Ubuntu with Python 3.10; Python 3.12 comes from `uv`. Still open: is the team allowed to install system software (`sudo apt`) on it?
 3. Reward for a correctly predicted `unknown_symbol`: 0.5 (literal rubric, the default) or 1.0? (§2)
 4. GitHub repo name and owner (personal account or org)? Who are the collaborators?

@@ -190,7 +190,7 @@ runs/               one folder per training run: NOT in git
 ## Progress (Lesson 36 checkpoint)
 
 - [x] Repo structure, README, requirements
-- [ ] Environment verified on the tower (`python scripts/check_env.py --download-weights`)
+- [x] Environment verified on the tower (2× RTX 4000 Ada, Python 3.12, all checks and tests pass)
 - [x] `reward.py` with passing unit tests
 - [ ] `download_public.py` and `prepare_data.py`; `data/SOURCES.md` licenses verified
 - [ ] At least 100 own photos per class, with metadata
