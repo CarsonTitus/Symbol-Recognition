@@ -14,7 +14,7 @@ It is "Step 2" (the classifier) of the PSYOP-VISR capstone app. The full project
 
 | Machine | Used for | PyTorch build |
 |---|---|---|
-| **Tower PC** (Windows, 2 NVIDIA GPUs) | real training and evaluation | CUDA (NVIDIA GPU) build |
+| **Tower PC** (Ubuntu Linux, 2 NVIDIA GPUs) | real training and evaluation | CUDA (NVIDIA GPU) build |
 | **Laptop** | editing, tests, small trial runs, `predict.py` demos | CPU build (or CUDA if it has an NVIDIA GPU) |
 | **Claude Code cloud sessions** | writing code, running tests | CPU build, installed automatically |
 
@@ -24,14 +24,106 @@ All machines share code through **GitHub**: `git pull` before working, `git push
 
 Python **3.11 or 3.12** is required. PyTorch is installed **separately** from `requirements.txt` because each machine needs a different build.
 
-### Tower PC or Windows laptop (PowerShell)
+### Tower PC (Ubuntu Linux, 2 NVIDIA GPUs)
+
+The tower's system Python is 3.10, which is too old. `uv` (a fast Python package tool) downloads Python 3.12 for this project only. It needs no `sudo` and doesn't touch the system Python.
+
+Install `uv` (one time per user account):
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+Tell the terminal where `uv` was installed, now and in every future terminal:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+```
+
+```bash
+uv --version
+```
+
+Get the code and create the Python 3.12 virtual environment (a private folder of packages for this project):
+
+```bash
+git clone https://github.com/CarsonTitus/Symbol-Recognition-.git
+```
+
+```bash
+cd Symbol-Recognition-
+```
+
+```bash
+uv venv --python 3.12 .venv
+```
+
+```bash
+source .venv/bin/activate
+```
+
+Install PyTorch. On Linux the default package already includes CUDA (NVIDIA's GPU platform) support:
+
+```bash
+uv pip install torch torchvision
+```
+
+```bash
+uv pip install -r requirements.txt
+```
+
+Check the machine:
+
+```bash
+nvidia-smi
+```
+
+```bash
+python scripts/check_env.py --download-weights
+```
+
+`check_env.py` should list **two** GPUs (`cuda:0` and `cuda:1`) and end with `All checks passed.` Record the exact GPU model and VRAM (GPU memory) from `nvidia-smi` in `CLAUDE.md` §14.
+
+**Every new terminal:** `cd Symbol-Recognition-` then `source .venv/bin/activate` before running anything. The prompt starts with `(.venv)` when it's active.
+
+### Linux or macOS laptop (bash)
+
+Same steps as the tower, with one difference when installing PyTorch. A laptop **without an NVIDIA GPU** should use the smaller CPU-only build:
+
+```bash
+uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+```
+
+On a Mac, use plain `uv pip install torch torchvision`; it includes Apple-GPU support.
+
+### Windows laptop (PowerShell)
+
+Install `uv` (one time):
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Close and reopen PowerShell, then:
 
 ```powershell
 git clone https://github.com/CarsonTitus/Symbol-Recognition-.git
+```
+
+```powershell
 cd Symbol-Recognition-
-py -3.12 -m venv .venv
+```
+
+```powershell
+uv venv --python 3.12 .venv
+```
+
+```powershell
 .\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
 ```
 
 If `Activate.ps1` is blocked ("running scripts is disabled"), run this once, then activate again:
@@ -40,46 +132,19 @@ If `Activate.ps1` is blocked ("running scripts is disabled"), run this once, the
 Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 ```
 
-Install PyTorch. **Tower (NVIDIA GPUs):** get the exact command from https://pytorch.org/get-started/locally/ by choosing *Stable → Windows → Pip → Python → the newest CUDA version*. It looks like this, with the CUDA number filled in:
+Install PyTorch. Without an NVIDIA GPU, use the CPU build:
 
 ```powershell
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cuXXX
+uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 ```
 
-**Laptop without an NVIDIA GPU:**
+With an NVIDIA GPU, get the command from https://pytorch.org/get-started/locally/ (*Stable → Windows → Pip → newest CUDA*) and put `uv` in front of `pip`.
 
 ```powershell
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+uv pip install -r requirements.txt
 ```
-
-Then install everything else and check the machine:
 
 ```powershell
-pip install -r requirements.txt
-python scripts/check_env.py --download-weights
-```
-
-On the tower, `check_env.py` should list **two** GPUs (`cuda:0` and `cuda:1`) and end with `All checks passed.`
-Run `nvidia-smi` too and record the exact GPU model and VRAM (GPU memory) in `CLAUDE.md` §14.
-
-### macOS or Linux laptop (bash)
-
-```bash
-git clone https://github.com/CarsonTitus/Symbol-Recognition-.git
-cd Symbol-Recognition-
-python3.12 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-```
-
-```bash
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-```
-
-(On a Mac, use plain `pip install torch torchvision` instead; it includes Apple-GPU support.)
-
-```bash
-pip install -r requirements.txt
 python scripts/check_env.py --download-weights
 ```
 
@@ -125,7 +190,7 @@ runs/               one folder per training run: NOT in git
 ## Progress (Lesson 36 checkpoint)
 
 - [x] Repo structure, README, requirements
-- [ ] Environment verified on the tower (`python scripts/check_env.py --download-weights`)
+- [x] Environment verified on the tower (2× RTX 4000 Ada, Python 3.12, all checks and tests pass)
 - [x] `reward.py` with passing unit tests
 - [ ] `download_public.py` and `prepare_data.py`; `data/SOURCES.md` licenses verified
 - [ ] At least 100 own photos per class, with metadata

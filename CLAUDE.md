@@ -12,10 +12,10 @@
 
 1. **The team must be able to explain every line.** The course requires students to defend all submitted code. Write plain, well-commented Python. Prefer clear over clever. At the top of each script, add a short "what this does and why" comment block. After writing each script, explain it in plain English in the chat.
 2. **Don't commit data or model weights to git.** Datasets, checkpoints and exported models go in folders listed in `.gitignore` (see §9). Commit only code, configs, small result plots and markdown.
-3. **The tower PC is Windows** (it shows a Device Manager). Write Windows-safe Python:
+3. **The tower PC runs Ubuntu Linux** (confirmed 2026-11-18; system Python is 3.10, so the project uses a Python 3.12 virtual environment created with `uv`). Teammates' laptops may run Windows, so write cross-platform Python:
    - Use `pathlib` for paths.
    - Put every training entry point under `if __name__ == "__main__":`. PyTorch data loaders with `num_workers > 0` crash on Windows without it.
-   - Provide PowerShell commands in the README alongside bash.
+   - Provide bash commands (tower, Linux/macOS) and PowerShell commands (Windows laptops) in the README.
 4. **Ask before changing the scope in §2.** That scope was submitted to the instructor and cannot change. Everything must deliver what it promises.
 5. **Work in the milestone order in §11.** Get the Lesson 36 checkpoint working end to end before adding extras.
 6. **Make every run reproducible:**
@@ -103,25 +103,25 @@ Notes:
 
 | Part | Reported | Notes |
 |---|---|---|
-| CPU | AMD EPYC 7443P | 24 cores / 48 threads. Plenty for loading data; use `num_workers` 8–16. |
-| GPU | 2× "RTX 4000" | Confirm the exact model with `nvidia-smi`. It could be the Quadro RTX 4000 (8 GB), RTX A4000 (16 GB) or RTX 4000 Ada (20 GB). **Any of these is far more than enough.** |
-| RAM | ~256 GB likely | Device Manager showed ~270 GB; 8 sticks × 32 GB = 256 GB is most likely. Confirm in Task Manager → Performance → Memory. More than enough. |
-| OS | Windows | See the Windows notes in §0. |
+| CPU | AMD EPYC 7443P | 24 cores / 48 threads (confirmed: 48). Plenty for loading data; use `num_workers` 8–16. |
+| GPU | 2× NVIDIA RTX 4000 Ada Generation, 20 GB VRAM each | Confirmed 2026-11-18 (driver 580.178.04, PyTorch 2.15.0+cu132). **Far more than enough.** `cuda:1` also drives the monitor (desktop, browser), so use `cuda:0` for the main run and `cuda:1` for the second experiment. |
+| RAM | 251 GiB usable (256 GB installed) | Confirmed with `free -h` on 2026-11-18. More than enough. |
+| OS | Ubuntu Linux | System Python is 3.10 (too old); use `uv` to get Python 3.12 (see setup below). |
 
 **Is this enough to train?** Yes, easily. We are **not** training a model from scratch. We **fine-tune** a small pretrained model (§6). Expect minutes to under an hour per run on one GPU.
 
-**Using both GPUs:** on Windows, PyTorch's multi-GPU training backend (NCCL, NVIDIA's GPU-to-GPU communication library) is not supported. Don't fight that. **Run two separate experiments at once, one per GPU**, e.g. two random seeds, or the learning-curve runs split across cards. Select a GPU per run with `--device cuda:0` / `--device cuda:1`.
+**Using both GPUs:** the simplest plan is to **run two separate experiments at once, one per GPU**. (Because the tower runs Linux, PyTorch's multi-GPU training backend, NCCL, NVIDIA's GPU-to-GPU communication library, would also work, but this small model doesn't need it.) Run two experiments, e.g. two random seeds, or the learning-curve runs split across cards. Select a GPU per run with `--device cuda:0` / `--device cuda:1`.
 
-### Setup commands (PowerShell)
+### Setup commands (bash, on the tower)
 
-```powershell
-nvidia-smi                       # confirm GPU model, memory (VRAM), driver version
-python --version                 # want Python 3.11 or 3.12
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-# Install a PyTorch build matching the CUDA version (CUDA = NVIDIA's GPU computing platform).
-# Get the exact install command for "Windows + pip + CUDA" from https://pytorch.org/get-started/locally/
-pip install -r requirements.txt
+```bash
+nvidia-smi                                          # confirm GPU model, memory (VRAM), driver version
+curl -LsSf https://astral.sh/uv/install.sh | sh     # uv: installs Python 3.12 without sudo
+export PATH="$HOME/.local/bin:$PATH"           # make uv findable in this terminal
+uv venv --python 3.12 .venv
+source .venv/bin/activate
+uv pip install torch torchvision                    # Linux default build includes CUDA (NVIDIA's GPU platform)
+uv pip install -r requirements.txt
 python -c "import torch; print(torch.cuda.is_available(), torch.cuda.device_count(), torch.cuda.get_device_name(0))"
 ```
 
@@ -270,7 +270,7 @@ Use two stages (training phases).
 ```
 symbol-cnn/
 ├── CLAUDE.md                 # this file
-├── README.md                 # setup + how to run each step (PowerShell + bash)
+├── README.md                 # setup + how to run each step (bash + PowerShell)
 ├── requirements.txt
 ├── .gitignore                # data/, runs/, exports/, *.pt, *.pth, *.tflite, *.onnx, kaggle.json, .venv/
 ├── configs/
@@ -411,8 +411,8 @@ What the existing app repo (`SOCOMIgnite2026`) does today, and what to change:
 
 ## 14. Open questions for the team
 
-1. Exact GPU model and VRAM (`nvidia-smi`)?
-2. Is Python already installed on the tower, and is the team allowed to install software on it (school-managed machine)?
+1. ~~Exact GPU model and VRAM?~~ 2× RTX 4000 Ada, 20 GB each (2026-11-18). RAM: 251 GiB.
+2. ~~Is Python already installed on the tower?~~ Ubuntu with Python 3.10; Python 3.12 comes from `uv`. Still open: is the team allowed to install system software (`sudo apt`) on it?
 3. Reward for a correctly predicted `unknown_symbol`: 0.5 (literal rubric, the default) or 1.0? (§2)
 4. GitHub repo name and owner (personal account or org)? Who are the collaborators?
 5. Which teammate owns photo collection, training and the presentation?
