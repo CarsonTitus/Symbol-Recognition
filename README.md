@@ -11,7 +11,7 @@ CS471 Artificial Intelligence final project. This repo trains a CNN (convolution
 
 The classes were revised from three (no symbol / unknown / triangle) to these four on 2026-11-20, with the course's permission to revise the scope. There is no separate "no symbol" output: a blank card is simply "not one of the three shapes".
 
-It is "Step 2" of a two-step idea: Step 1 finds a mark, Step 2 (this CNN) names it. In the phone demo app, the user's aiming box stands in for Step 1. The full project brief is in [`CLAUDE.md`](CLAUDE.md).
+It is "Step 2" of a two-step idea: Step 1 finds a mark, Step 2 (this CNN) names it. In the phone demo app, the user's aiming box stands in for Step 1. How we got here (what we tried before this model, and why): [`docs/approach.md`](docs/approach.md). The full project brief is in [`CLAUDE.md`](CLAUDE.md).
 
 ## Results so far (Lesson 36 checkpoint)
 
@@ -386,7 +386,7 @@ None of this is required: a laptop with any NVIDIA GPU trains the model in under
 configs/            settings files (YAML)
 data/               datasets: NOT in git except README.md and SOURCES.md
 src/symbolcnn/      project code: config, reward, utils, imageprep, datasets, models, metrics, plots
-docs/               scope revision draft and other write-ups
+docs/               approach write-up, progress summary, scope revision draft
 scripts/            command-line tools: check_env, download_public, prepare_data, train, evaluate,
                     learning_curve, predict, export_tflite
 android/            the phone demo app (Kotlin, CameraX, LiteRT)
