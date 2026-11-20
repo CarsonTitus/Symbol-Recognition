@@ -22,7 +22,7 @@ from symbolcnn.models import (IMAGENET_MEAN, IMAGENET_STD, TinyCNN, count_parame
                               freeze_backbone, unfreeze_all)
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CLASSES = ["no_symbol", "unknown_symbol", "triangle"]
+CLASSES = ["no_symbol", "unknown_symbol", "triangle", "quadrilateral", "ellipse"]
 _spec = importlib.util.spec_from_file_location("train", REPO_ROOT / "scripts" / "train.py")
 train = importlib.util.module_from_spec(_spec)
 sys.modules["train"] = train
@@ -57,7 +57,7 @@ def test_dataset_returns_normalized_tensors(processed):
 
 def test_data_fraction_keeps_every_class(processed):
     rows = load_split(processed, "train", fraction=0.25, seed=0)
-    assert len(rows) == 6                                   # 25% of 24
+    assert len(rows) == 10                                  # 25% of 40 (8 images x 5 classes)
     assert sorted(rows["label"].unique()) == sorted(CLASSES)
 
 
@@ -70,7 +70,7 @@ def test_balanced_sampler_evens_out_classes():
 
 # ---------------------------------------------------------------- models.py
 def test_tiny_cnn_outputs_one_score_per_class():
-    assert TinyCNN(3)(torch.randn(2, 3, 224, 224)).shape == (2, 3)
+    assert TinyCNN(5)(torch.randn(2, 3, 224, 224)).shape == (2, 5)
 
 
 def test_freeze_leaves_only_the_classifier_trainable():
@@ -114,7 +114,7 @@ def test_training_run_writes_metrics_and_checkpoints(processed, tmp_path):
 
     checkpoint = torch.load(run_dir / "best.pt", weights_only=False)
     assert checkpoint["classes"] == CLASSES and checkpoint["model_name"] == "tiny_cnn"
-    TinyCNN(3).load_state_dict(checkpoint["model_state"])   # weights load back into a fresh model
+    TinyCNN(5).load_state_dict(checkpoint["model_state"])   # weights load back into a fresh model
 
 
 def test_early_stopping(processed, tmp_path):

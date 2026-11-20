@@ -41,21 +41,22 @@ def test_evaluate_writes_all_outputs(trained_run, processed):  # noqa: F811
         assert (trained_run / "eval" / name).exists(), name
 
     results = json.loads((out / "metrics.json").read_text())
-    assert results["images"] == 12                          # 4 val images x 3 classes
+    assert results["images"] == 20                          # 4 val images x 5 classes
     plain = results["no threshold"]
     assert 0.0 <= plain["accuracy"] <= 1.0
     assert 0.0 <= plain["reward_percent_of_max"] <= 100.0
-    assert sum(map(sum, plain["confusion_matrix"])) == 12  # every image counted once
-    # 4 no_symbol + 4 unknown + 4 triangle: best possible = (4*1.0 + 4*0.5 + 4*1.0) / 12
-    assert plain["max_possible_reward"] == pytest.approx(10 / 12)
-    assert len(pd.read_csv(out / "predictions.csv")) == 12
+    assert sum(map(sum, plain["confusion_matrix"])) == 20  # every image counted once
+    # 4 images of each class: 4 earn at most 0.5 (unknown), the other 16 at most 1.0
+    # best possible = (16*1.0 + 4*0.5) / 20 = 0.9
+    assert plain["max_possible_reward"] == pytest.approx(18 / 20)
+    assert len(pd.read_csv(out / "predictions.csv")) == 20
 
 
 def test_threshold_one_turns_every_answer_into_unknown(trained_run, processed):  # noqa: F811
     # No answer is ever 100% sure, so with threshold 1.0 everything becomes unknown_symbol.
     results = evaluate.run_evaluation(trained_run, "val", "cpu", threshold=1.0, processed=processed, workers=0)
     matrix = results["with threshold 1.0"]["confusion_matrix"]
-    assert [row[1] for row in matrix] == [4, 4, 4]          # the whole unknown_symbol column
+    assert [row[1] for row in matrix] == [4, 4, 4, 4, 4]          # the whole unknown_symbol column
 
 
 def test_empty_split_gives_a_helpful_message(trained_run, processed):  # noqa: F811

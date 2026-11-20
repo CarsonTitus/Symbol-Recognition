@@ -16,7 +16,7 @@
    - Use `pathlib` for paths.
    - Put every training entry point under `if __name__ == "__main__":`. PyTorch data loaders with `num_workers > 0` crash on Windows without it.
    - Provide bash commands (tower, Linux/macOS) and PowerShell commands (Windows laptops) in the README.
-4. **Ask before changing the scope in §2.** That scope was submitted to the instructor and cannot change. Everything must deliver what it promises.
+4. **Ask before changing the scope in §2.** It was revised once (2026-11-20) with the course's permission. Everything must deliver what it promises.
 5. **Work in the milestone order in §11.** Get the Lesson 36 checkpoint working end to end before adding extras.
 6. **Make every run reproducible:**
    - Fixed random seeds.
@@ -29,7 +29,7 @@
 
 Operators in unfamiliar places may not recognize local symbols (gang signs, cultural or religious markings) that tell them something about the area. The capstone app points the phone camera at the environment and shows a short explanation in the G2 glasses when it recognizes a symbol.
 
-For this class we use **basic hand-drawn shapes as stand-ins** ("proxies") for real symbols. That keeps the project unclassified and doable in an academic lab. The proof of concept: recognize a **hand-drawn triangle on a notecard**.
+For this class we use **basic shapes as stand-ins** ("proxies") for real symbols. That keeps the project unclassified and doable in an academic lab. The proof of concept: name the shape (**triangle, quadrilateral or ellipse**) of a hand-drawn mark on a notecard **or** of a real object (a ball, a sign, a window).
 
 ### Why the current app fails at this
 
@@ -47,23 +47,23 @@ Use two steps. **Step 1** finds "there is a drawn mark here." **Step 2** cuts ou
 
 ---
 
-## 2. Submitted scope (locked; cannot change)
+## 2. Scope (revised 2026-11-20; ask before changing)
 
-This is what the team turned in on the CS471 scoping worksheet. All deliverables must satisfy it.
+The team first turned in a 3-output scope (no symbol / unknown / triangle). On 2026-11-20 the team revised it, using the course's option to revise the scope doc, to name **three shapes** and to cover **real objects as well as drawings**: the original problem was that YOLO sees objects but not drawn shapes, so the classifier must handle both. The wording to submit is in `docs/scope_revision.md`. All deliverables must satisfy the revised scope. **Ask before changing it again.**
 
-| Field | Submitted answer (summary) |
+| Field | Scope (summary) |
 |---|---|
 | **Operational problem** | Alert operators to symbology (e.g., gang signs) in their surroundings. Basic shapes are the proof of concept. |
-| **States** | Each image in the dataset is a state. |
-| **Actions** | The agent labels each image as one of three outputs: **"no symbol"**, **"symbol detected but cannot identify"**, or **"symbol detected: triangle"**. |
-| **Reward** | Incorrect → **+0**. Symbol detected but can't identify → **+0.5**. Symbol detected and identified → **+1**. Correctly says no symbol → **+1**. |
+| **States** | Each image (a close-up of a drawn mark or a real-world object) is a state. |
+| **Actions** | The agent labels each image as one of five outputs: **"no symbol"**, **"symbol detected but cannot identify"**, **"symbol detected: triangle"**, **"symbol detected: quadrilateral"**, or **"symbol detected: ellipse"**. |
+| **Reward** | Incorrect (including naming the wrong shape) → **+0**. Symbol detected but can't identify → **+0.5**. Symbol detected and identified → **+1**. Correctly says no symbol → **+1**. |
 | **Algorithm** | **CNN** (convolutional neural network) |
 | **Lesson 36 checkpoint** | Show training output and the trained model recognizing symbols correctly **~90%** of the time across different dataset sizes. |
 | **Lesson 41 evaluation** | **Confusion matrix** and **reward convergence graph**, showing **90% accuracy on test data**. |
 
 ### How we deliver the "reward" items with a CNN
 
-A CNN doesn't learn from rewards; it learns from labeled examples by reducing a "loss" (a number measuring how wrong its guesses are). We still honor the submitted scope exactly:
+A CNN doesn't learn from rewards; it learns from labeled examples by reducing a "loss" (a number measuring how wrong its guesses are). We still honor the scope exactly:
 
 - The reward table becomes a **scoring rubric**. After every training round (an **epoch**, one full pass over the training images), score the model on the validation images with the rubric and record the **average reward per image**.
 - Plotting average reward against epoch gives the **reward convergence graph**: it should rise and level off as the model learns.
@@ -73,31 +73,44 @@ A CNN doesn't learn from rewards; it learns from labeled examples by reducing a 
 
 Rows are the **true** label and columns are the model's **prediction**.
 
-| True \ Predicted | no_symbol | unknown_symbol | triangle |
-|---|---|---|---|
-| **no_symbol** | **1.0** | 0.0 | 0.0 |
-| **unknown_symbol** | 0.0 | **0.5** | 0.0 |
-| **triangle** | 0.0 | **0.5** | **1.0** |
+| True \ Predicted | no_symbol | unknown_symbol | triangle | quadrilateral | ellipse |
+|---|---|---|---|---|---|
+| **no_symbol** | **1.0** | 0.0 | 0.0 | 0.0 | 0.0 |
+| **unknown_symbol** | 0.0 | **0.5** | 0.0 | 0.0 | 0.0 |
+| **triangle** | 0.0 | **0.5** | **1.0** | 0.0 | 0.0 |
+| **quadrilateral** | 0.0 | **0.5** | 0.0 | **1.0** | 0.0 |
+| **ellipse** | 0.0 | **0.5** | 0.0 | 0.0 | **1.0** |
 
 Notes:
 
-- **True triangle, predicted unknown = 0.5.** The model saw a symbol but couldn't name it, which matches the submitted rubric literally.
+- **True shape, predicted unknown = 0.5.** The model saw a symbol but couldn't name it, which matches the rubric literally.
+- **Wrong shape name = 0.** Calling a triangle an ellipse is incorrect.
 - **True unknown, predicted unknown = 0.5** also follows the rubric literally ("detected but cannot identify" is worth +0.5). The best possible average reward is therefore below 1.0 whenever unknown symbols are in the test set. Always report **reward as a percentage of the maximum possible** for that dataset, alongside the raw average.
-- **⚠ Team decision:** if the team prefers to count a correct "unknown" as +1, change only the config value and note it in the presentation. Ask the team; don't decide silently.
+- **Team decision (2026-11-20):** a correct "unknown" stays at **0.5** (the literal rubric).
 
 ---
 
-## 3. Classes (the three outputs)
+## 3. Classes (the five outputs)
+
+**The labeling rule:** the class is the **outline of the main thing in the cropped image**, whether it is drawn, painted, printed or a real object.
 
 | Class folder name | Meaning | Examples |
 |---|---|---|
-| `no_symbol` | No drawn symbol present | Blank notecards, walls, desks, floors, random backgrounds, printed text with no shape |
-| `unknown_symbol` | A drawn mark that is **not** a triangle | Circles, squares, rectangles, stars, X's, arrows, squiggles, other doodles |
-| `triangle` | A hand-drawn triangle | Any size, rotation, pen, or line quality; open or slightly sloppy triangles still count |
+| `no_symbol` | No clear shape | Blank notecards, walls, desks, floors, carpet, clutter, **plants**, irregular objects, printed text with no shape |
+| `unknown_symbol` | A clear shape or mark that is none of the three named shapes | Stars, X's, arrows, hexagons, zigzags, squiggles |
+| `triangle` | A triangle | Any drawn triangle (equilateral, skinny, rotated, sloppy), yield/warning signs |
+| `quadrilateral` | Any 4-sided shape | Squares, rectangles, diamonds, kites, parallelograms, trapezoids; cards, windows, books, a toy kite |
+| `ellipse` | A circle or oval | Drawn circles/ovals (nobody draws a perfect circle), balls, plates, clocks, coins |
 
-**Team decision (2026-11-18): for now, train on only three kinds of drawn shape.** `triangle` ← triangles; `unknown_symbol` ← **quadrilaterals** (square, rectangle, diamond/rhombus, parallelogram, trapezoid) and **ellipses** (circles, ovals) only. Kites stay out (thin ones look like triangles). All other shapes (stars, X's, arrows, squiggles, hexagons...) stay out of training and are used for the never-seen-shapes test instead. They never go in `no_symbol`. The three outputs in §2 are unchanged. Set in `configs/default.yaml` (`public_data` class maps).
+**Team decision (2026-11-20):** five outputs, real objects included (supersedes the 2026-11-18 three-shape decision).
+- `unknown_symbol` is trained on other clear shapes: stars, hexagons, zigzags, squiggles, lines (option 1 of three discussed; the alternatives were no unknown class, or unknown only from the confidence threshold).
+- **Held back** for the never-seen-shapes test, so they appear nowhere in training: hearts, the letter "A", lightning bolts.
+- **Left out** because their labels are unclear: octagons and smiley faces (their outlines are basically ellipses), Quick Draw "diamond" (about 1 in 4 is a triangle-shaped gem), triangle-like objects (mountain, tent, pizza).
+- Kites are quadrilaterals and are included.
+- Set in `configs/default.yaml` (`classes`, `reward_matrix`, `public_data` class maps).
+- **Still to do:** public datasets of real-object photos (balls, signs, windows...) plus our own Pixel photos of objects.
 
-**How "unknown" works (design decision):** `unknown_symbol` is its own trained category, learned from many non-triangle shapes. As a backup safety net, if the model's top confidence is below a threshold (default 0.6, set in config), the app reports `unknown_symbol` instead of guessing. Report results both with and without the threshold.
+**How "unknown" works (design decision):** `unknown_symbol` is its own trained category, learned from many shapes that are not triangles, quadrilaterals or ellipses. As a backup safety net, if the model's top confidence is below a threshold (default 0.6, set in config), the app reports `unknown_symbol` instead of guessing. Report results both with and without the threshold.
 
 ---
 
@@ -415,6 +428,6 @@ What the existing app repo (`SOCOMIgnite2026`) does today, and what to change:
 
 1. ~~Exact GPU model and VRAM?~~ 2× RTX 4000 Ada, 20 GB each (2026-11-18). RAM: 251 GiB.
 2. ~~Is Python already installed on the tower?~~ Ubuntu with Python 3.10; Python 3.12 comes from `uv`. Still open: is the team allowed to install system software (`sudo apt`) on it?
-3. Reward for a correctly predicted `unknown_symbol`: 0.5 (literal rubric, the default) or 1.0? (§2)
-4. GitHub repo name and owner (personal account or org)? Who are the collaborators?
+3. ~~Reward for a correctly predicted `unknown_symbol`?~~ 0.5, the literal rubric (2026-11-20).
+4. ~~GitHub repo and collaborators?~~ CarsonTitus/Symbol-Recognition- (owner CarsonTitus), partner SabrinaMcG (2026-11-20).
 5. Which teammate owns photo collection, training and the presentation?

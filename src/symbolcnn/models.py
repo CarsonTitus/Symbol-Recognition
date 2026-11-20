@@ -5,7 +5,7 @@ What this does:
     create_model(cfg) returns one of two models, chosen by model.name in the config:
       "mobilenetv3_large_100"  the main model: a phone-sized CNN from the timm
                                library, pretrained on ImageNet (1.2M photos), with
-                               its final 1000-category layer replaced by a 3-category one.
+                               its final 1000-category layer replaced by a 5-category one (one per class).
       "tiny_cnn"               a small CNN written from scratch (CLAUDE.md §6). Used to
                                show why pretraining matters, and to explain a CNN
                                layer by layer. Also used by the fast unit tests.
@@ -36,7 +36,7 @@ class TinyCNN(nn.Module):
     Early blocks find edges; later blocks combine them into corners and shapes.
     """
 
-    def __init__(self, num_classes: int = 3):
+    def __init__(self, num_classes: int = 5):
         super().__init__()
 
         def block(channels_in: int, channels_out: int) -> nn.Sequential:
@@ -69,7 +69,7 @@ def create_model(cfg: dict, pretrained: bool | None = None) -> nn.Module:
     if pretrained is None:
         pretrained = cfg["model"]["pretrained"]
     # pretrained=True downloads ImageNet weights from Hugging Face (cached after the first time).
-    # num_classes=3 swaps the final 1000-category layer for a new, untrained 3-category layer.
+    # num_classes=5 swaps the final 1000-category layer for a new, untrained 5-category layer.
     return timm.create_model(name, pretrained=pretrained, num_classes=num_classes)
 
 
