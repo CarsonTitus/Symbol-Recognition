@@ -13,31 +13,19 @@ The classes were revised from three (no symbol / unknown / triangle) to these fo
 
 It is "Step 2" (the classifier) of the PSYOP-VISR capstone app. The full project brief is in [`CLAUDE.md`](CLAUDE.md).
 
-## Where things run
-
-| Machine | Used for | PyTorch build |
-|---|---|---|
-| **Tower PC** (Ubuntu Linux, 2 NVIDIA GPUs) | real training and evaluation | CUDA (NVIDIA GPU) build |
-| **Laptop** | editing, tests, small trial runs, `predict.py` demos | CPU build (or CUDA if it has an NVIDIA GPU) |
-| **Claude Code cloud sessions** | writing code, running tests | CPU build, installed automatically |
-
-All machines share code through **GitHub**: `git pull` before working, `git push` after. Data and trained models are **not** in git; copy them by USB drive or shared drive (see [`data/README.md`](data/README.md)).
-
 ## Setup
 
-Python **3.11 or 3.12** is required. PyTorch is installed **separately** from `requirements.txt` because each machine needs a different build.
+You need Python **3.11 or 3.12** and `git`. PyTorch is installed **separately** from `requirements.txt` because the right build depends on whether the computer has an NVIDIA GPU. Data and trained models are **not** in git: the scripts below download and build them.
 
-### Tower PC (Ubuntu Linux, 2 NVIDIA GPUs)
+### Linux or macOS (bash)
 
-The tower's system Python is 3.10, which is too old. `uv` (a fast Python package tool) downloads Python 3.12 for this project only. It needs no `sudo` and doesn't touch the system Python.
-
-Install `uv` (one time per user account):
+Install `uv` (a fast Python package tool; it can download Python 3.12 without `sudo`), one time:
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Tell the terminal where `uv` was installed, now and in every future terminal:
+Make `uv` findable, now and in every future terminal:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
@@ -47,11 +35,7 @@ export PATH="$HOME/.local/bin:$PATH"
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 ```
 
-```bash
-uv --version
-```
-
-Get the code and create the Python 3.12 virtual environment (a private folder of packages for this project):
+Get the code and create the virtual environment (a private folder of packages for this project):
 
 ```bash
 git clone https://github.com/CarsonTitus/Symbol-Recognition-.git
@@ -69,41 +53,33 @@ uv venv --python 3.12 .venv
 source .venv/bin/activate
 ```
 
-Install PyTorch. On Linux the default package already includes CUDA (NVIDIA's GPU platform) support:
+Install PyTorch. **With an NVIDIA GPU (Linux):** the default package includes CUDA (NVIDIA's GPU platform) support:
 
 ```bash
 uv pip install torch torchvision
 ```
 
+**Without an NVIDIA GPU:** use the smaller CPU-only build (on a Mac, the plain command above also works and includes Apple-GPU support):
+
 ```bash
-uv pip install -r requirements.txt
+uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 ```
 
-Check the machine:
+Then the rest of the packages, and a check of the machine:
 
 ```bash
-nvidia-smi
+uv pip install -r requirements.txt
 ```
 
 ```bash
 python scripts/check_env.py --download-weights
 ```
 
-`check_env.py` should list **two** GPUs (`cuda:0` and `cuda:1`) and end with `All checks passed.` Record the exact GPU model and VRAM (GPU memory) from `nvidia-smi` in `CLAUDE.md` §14.
+It lists the Python and PyTorch versions and any GPUs, downloads the pretrained MobileNetV3 weights, and ends with `All checks passed.`
 
 **Every new terminal:** `cd Symbol-Recognition-` then `source .venv/bin/activate` before running anything. The prompt starts with `(.venv)` when it's active.
 
-### Linux or macOS laptop (bash)
-
-Same steps as the tower, with one difference when installing PyTorch. A laptop **without an NVIDIA GPU** should use the smaller CPU-only build:
-
-```bash
-uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-```
-
-On a Mac, use plain `uv pip install torch torchvision`; it includes Apple-GPU support.
-
-### Windows laptop (PowerShell)
+### Windows (PowerShell)
 
 Install `uv` (one time):
 
@@ -151,6 +127,8 @@ uv pip install -r requirements.txt
 python scripts/check_env.py --download-weights
 ```
 
+The commands in the rest of this README are the same in PowerShell; use `\` instead of `/` in file paths if you prefer. Without an NVIDIA GPU, add `--device cpu` to the training and evaluation commands (training is much slower on a CPU, so use `--limit-per-class` and `--data-fraction` for trial runs).
+
 ## Run the tests
 
 ```bash
@@ -180,7 +158,7 @@ Running it again skips anything already downloaded. Use `--force` to download ag
 
 1. Sign in at https://www.kaggle.com (free account).
 2. Go to https://www.kaggle.com/settings/api, then **Generate New Token**, and copy the token.
-3. On the tower, save it (paste the token between the quotes):
+3. Save it (paste the token between the quotes):
 
 ```bash
 mkdir -p ~/.kaggle
@@ -203,10 +181,10 @@ python scripts/download_public.py --sources kaggle
 ## Build the training folders
 
 ```bash
-python scripts/prepare_data.py --workers 40
+python scripts/prepare_data.py
 ```
 
-This sorts every downloaded image (and our own photos, once there are some in `data/raw_own/`) into `data/processed/{train,val,test}/<class>/` (one folder per output above) as 224×224 RGB images, and writes `data/processed/manifest.csv`. It takes about a minute on the tower and about 1 GB of disk.
+This sorts every downloaded image (and our own photos, once there are some in `data/raw_own/`) into `data/processed/{train,val,test}/<class>/` (one folder per output above) as 224×224 RGB images, and writes `data/processed/manifest.csv`. It takes about a minute on our training computer and about 1 GB of disk.
 
 - Our photos are split **by drawer** (70/15/15), so one person's drawings never appear in two splits.
 - Public data only goes into train/val. **Test = our own photos only.**
@@ -236,7 +214,7 @@ Training stops early if the validation reward hasn't improved for 5 epochs. Pres
 
 Useful variations:
 
-- `--device cuda:1`: use the second GPU. It also drives the monitor, so use `cuda:0` for the main run.
+- `--device cuda:1`: use a second GPU, if the computer has one.
 - `--data-fraction 0.25`: train on 25% of the training data (learning-curve runs).
 - `--model tiny_cnn`: the small from-scratch CNN, for comparison.
 - `--device cpu --max-batches 5`: a quick check that everything runs, on any machine.
@@ -246,7 +224,7 @@ Useful variations:
 Open a **second terminal** while training runs:
 
 ```bash
-cd ~/Symbol-Recognition-
+cd Symbol-Recognition-
 ```
 
 ```bash
@@ -257,7 +235,7 @@ source .venv/bin/activate
 tensorboard --logdir runs
 ```
 
-Then open **http://localhost:6006** in the tower's web browser. It refreshes every 30 seconds.
+Then open **http://localhost:6006** in a web browser on the same computer. It refreshes every 30 seconds.
 
 - **Scalars** (or **Time Series**): `loss` and `accuracy` (train vs val), `reward/val_average` (the reward convergence graph), `reward/val_percent_of_max`, `learning_rate`.
 - **Images**: `train/what_the_model_sees` is a snapshot of the exact batch being trained on, taken every 200 batches. `val/most_confident_mistakes` shows the validation images the model gets most confidently wrong, after every epoch.
@@ -281,7 +259,7 @@ This prints the accuracy, the confusion matrix, the average reward and precision
 python scripts/learning_curve.py --devices cuda:0 cuda:1
 ```
 
-This trains the model four times, on 10%, 25%, 50% and 100% of the training data, sharing the runs between both GPUs, then scores each one. The results go in `runs/<date-time>_learning_curve/learning_curve_val.csv` and `.png`. It takes about 30 minutes on the tower and needs nobody at the keyboard. To re-score finished runs on our own photos later, without retraining:
+This trains the model four times, on 10%, 25%, 50% and 100% of the training data, sharing the runs between the listed GPUs (give one, e.g. `--devices cuda:0`, if there is only one), then scores each one. The results go in `runs/<date-time>_learning_curve/learning_curve_val.csv` and `.png`. It takes about 30 minutes on our training computer (below) and needs nobody at the keyboard. To re-score finished runs on our own photos later, without retraining:
 
 ```bash
 python scripts/learning_curve.py --from runs/<date-time>_learning_curve --split test
@@ -326,6 +304,21 @@ Change a setting in the YAML file, not in the Python code. Each training run sav
 
 In words: naming the right shape earns +1; "unknown / cannot identify" earns +0.5; anything wrong (naming the wrong shape, or naming a shape when there isn't one) earns 0. Results report the average reward and the **reward as a percentage of the best possible**, because a correct `unknown_symbol` can only earn 0.5.
 
+## Hardware used for training
+
+All results in this repo were produced on the lab's tower PC:
+
+| Part | Details |
+|---|---|
+| CPU | AMD EPYC 7443P, 24 cores / 48 threads |
+| GPU | 2× NVIDIA RTX 4000 Ada Generation, 20 GB VRAM (GPU memory) each |
+| RAM | 256 GB |
+| Software | Ubuntu Linux, Python 3.12 (via `uv`), PyTorch 2.15 with CUDA |
+
+On it, one full Stage A training run takes about 17 minutes on one GPU, the learning curve about 30 minutes using both GPUs, and the model classifies an image in a few milliseconds.
+
+None of this is required: a laptop with any NVIDIA GPU trains the model in under an hour, and `predict.py` runs on any CPU.
+
 ## Repository layout
 
 ```
@@ -346,14 +339,14 @@ The written progress summary is in [`docs/progress_lesson36.md`](docs/progress_l
 
 
 - [x] Repo structure, README, requirements
-- [x] Environment verified on the tower (2× RTX 4000 Ada, Python 3.12, all checks and tests pass)
+- [x] Environment verified on the training computer (see [Hardware used for training](#hardware-used-for-training))
 - [x] `reward.py` with passing unit tests
 - [x] `download_public.py` (HDS, Quick, Draw!, Hugging Face; Kaggle once a token is added)
 - [x] `prepare_data.py` (drawer-based split, manifest, 224×224 images)
 - [x] Kaggle datasets downloaded, mapped and licenses verified in `data/SOURCES.md` (both CC0)
 - [ ] At least 100 own photos per class, with metadata
 - [x] `train.py` written and tested on CPU
-- [x] `train.py` Stage A full run on the tower GPU (4 classes)
+- [x] `train.py` Stage A full run on the GPU (4 classes)
 - [x] `evaluate.py`
 - [x] `learning_curve.py` (10/25/50/100%)
 - [x] `predict.py` demo
