@@ -265,6 +265,48 @@ Then open **http://localhost:6006** in the tower's web browser. It refreshes eve
 
 Press Ctrl+C in that terminal to stop TensorBoard; training is unaffected.
 
+## Evaluate the model
+
+```bash
+python scripts/evaluate.py --run runs/<run folder> --split val --device cuda:0
+```
+
+This prints the accuracy, the confusion matrix, the average reward and precision/recall/F1 per class, both without and with the confidence threshold. It saves everything (confusion matrix PNG/CSV, per-class table, every prediction, an error gallery of the worst mistakes) in `runs/<run>/eval/<split>/`, plus the reward convergence graph and training curves in `runs/<run>/eval/`.
+
+- `--split test`: the honest score, on our own photos only. It stays empty until we add photos, so use `--split val` until then.
+- `--split test_novel_shapes`: shapes never seen in training. It reports how many were (correctly) called `unknown_symbol`.
+
+## Learning curve (different dataset sizes)
+
+```bash
+python scripts/learning_curve.py --devices cuda:0 cuda:1
+```
+
+This trains the model four times, on 10%, 25%, 50% and 100% of the training data, sharing the runs between both GPUs, then scores each one. The results go in `runs/<date-time>_learning_curve/learning_curve_val.csv` and `.png`. It takes about 30 minutes on the tower and needs nobody at the keyboard. To re-score finished runs on our own photos later, without retraining:
+
+```bash
+python scripts/learning_curve.py --from runs/<date-time>_learning_curve --split test
+```
+
+## Classify a photo (the demo)
+
+```bash
+python scripts/predict.py --run latest --image path/to/card_photo.jpg
+```
+
+`--run latest` uses the newest finished training run in `runs/`; you can also give a run folder. `--image` takes one or more files and/or folders. Each photo gets one line:
+
+```
+card_photo.jpg -> triangle (92.0%)   [no_symbol 2.0% | unknown_symbol 2.1% | triangle 92.0% | quadrilateral 2.1% | ellipse 1.7%]
+```
+
+- **Crop the photo first** so the card or object fills most of the frame. The model names the outline of the *main* thing in the image.
+- If the top probability is below the confidence threshold (60%), the answer becomes `unknown_symbol` and the line says `unsure`. `--threshold 0` switches this off.
+- Confidence tops out around 92–94%, never 100%. That is on purpose: training uses "label smoothing" so the model never becomes over-confident.
+- Add `--device cpu` on a laptop without an NVIDIA GPU. It takes well under a second per photo.
+
+These commands are the same in PowerShell; just use `\` instead of `/` in file paths if you prefer.
+
 ## Settings
 
 All settings live in [`configs/`](configs/):
@@ -274,7 +316,7 @@ All settings live in [`configs/`](configs/):
 
 Change a setting in the YAML file, not in the Python code. Each training run saves a copy of its exact settings in `runs/<timestamp>_<name>/config.yaml`.
 
-### Reward matrix (from the submitted scope)
+### Reward matrix (from the revised scope)
 
 | True \ Predicted | no_symbol | unknown_symbol | triangle | quadrilateral | ellipse |
 |---|---|---|---|---|---|
@@ -291,8 +333,10 @@ In words: naming the right shape or correctly saying "no symbol" earns +1; "symb
 ```
 configs/            settings files (YAML)
 data/               datasets: NOT in git except README.md and SOURCES.md
-src/symbolcnn/      project code: config, reward, utils, imageprep, datasets, models, plots
-scripts/            command-line tools: check_env, download_public, prepare_data, train (more coming)
+src/symbolcnn/      project code: config, reward, utils, imageprep, datasets, models, metrics, plots
+docs/               scope revision draft and other write-ups
+scripts/            command-line tools: check_env, download_public, prepare_data, train, evaluate,
+                    learning_curve, predict
 tests/              pytest unit tests
 results/            small final plots/tables for the presentation
 runs/               one folder per training run: NOT in git
@@ -308,10 +352,10 @@ runs/               one folder per training run: NOT in git
 - [x] Kaggle datasets downloaded, mapped and licenses verified in `data/SOURCES.md` (both CC0)
 - [ ] At least 100 own photos per class, with metadata
 - [x] `train.py` written and tested on CPU
-- [ ] `train.py` Stage A full run on the tower GPU
-- [ ] `evaluate.py`
-- [ ] `learning_curve.py` (10/25/50/100%)
-- [ ] `predict.py` demo
+- [x] `train.py` Stage A full run on the tower GPU (5 classes: 99.3% on validation drawings)
+- [x] `evaluate.py`
+- [x] `learning_curve.py` (10/25/50/100%)
+- [x] `predict.py` demo
 
 ## Data credits
 
