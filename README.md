@@ -342,6 +342,9 @@ runs/               one folder per training run: NOT in git
 
 ## Progress (Lesson 36 checkpoint)
 
+The written progress summary is in [`docs/progress_lesson36.md`](docs/progress_lesson36.md); its plots are in `results/lesson36/`.
+
+
 - [x] Repo structure, README, requirements
 - [x] Environment verified on the tower (2× RTX 4000 Ada, Python 3.12, all checks and tests pass)
 - [x] `reward.py` with passing unit tests
