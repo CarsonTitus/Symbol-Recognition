@@ -1,6 +1,6 @@
 # Lesson 36 Checkpoint: Progress Summary
 
-**Team:** Carson Titus, Sabrina McG<!-- TODO: Sabrina's full last name -->
+**Team:** Carson Titus, Sabrina McGarvey
 **Repository:** https://github.com/CarsonTitus/Symbol-Recognition (tag `lesson36-checkpoint`)
 
 ## Completed functionality
@@ -22,15 +22,6 @@ On validation data, the model reaches **99.4% accuracy (99.6% of the maximum rew
 - The first version mislabeled some public data: Quick, Draw! "diamonds" are often triangle-shaped gems, and some Kaggle images are near-duplicate video frames. We found these through error galleries and fixed the class mappings.
 - We revised the scope from one named shape to three, and to include real objects, because ordinary object detectors (like YOLO) recognize objects but cannot see drawn shapes.
 - Validation scores come from public drawings. The honest test, on our own photos, is still ahead.
-
-## Team contributions
-
-<!-- TODO: fill in who did what. Examples below; replace with what each person actually did. -->
-
-| Member | Contributions |
-|---|---|
-| Carson Titus | <!-- e.g. project setup on the lab tower, data pipeline and training runs, scope revision --> |
-| Sabrina McG | <!-- e.g. photo collection plan, reviewing results, presentation --> |
 
 ## Results in this repository
 
