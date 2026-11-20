@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- activity_main.xml: the screen. Camera preview underneath, the aiming box and answer on top. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <!-- Live camera picture. FILL_CENTER = fill the screen, trimming the edges if needed. -->
+    <androidx.camera.view.PreviewView
+        android:id="@+id/preview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:scaleType="fillCenter"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+    <!-- The square aiming box. Only what is inside it goes to the model. -->
+    <edu.cs471.symbolcnn.AimBoxView
+        android:id="@+id/aimBox"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#B3000000"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- The answer, e.g. "TRIANGLE 91%". -->
+        <TextView
+            android:id="@+id/answer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Starting camera..."
+            android:textColor="#FFFFFF"
+            android:textSize="34sp"
+            android:textStyle="bold" />
+
+        <!-- Every class probability and the time the model took. -->
+        <TextView
+            android:id="@+id/details"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="#CCCCCC"
+            android:textSize="13sp"
+            android:typeface="monospace" />
+    </LinearLayout>
+</FrameLayout>
