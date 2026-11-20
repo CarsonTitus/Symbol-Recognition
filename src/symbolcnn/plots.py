@@ -62,7 +62,7 @@ def confusion_matrix_figure(counts: np.ndarray, percents: np.ndarray, classes: l
             color = "white" if percents[row, col] > 60 else "black"   # readable on dark cells
             axis.text(col, row, f"{counts[row, col]}\n({percents[row, col]:.1f}%)",
                       ha="center", va="center", color=color, fontsize=10)
-    axis.set_title(title, fontsize=10)
+    figure.suptitle(title, fontsize=10)   # spans the whole figure, so it never runs into the color bar
     figure.tight_layout()
     return figure
 
@@ -124,9 +124,10 @@ def learning_curve_figure(table, split: str):
     axis.plot(x, table["accuracy"] * 100, marker="o", label="accuracy %")
     axis.plot(x, table["reward_percent_of_max"], marker="s", label="reward % of max")
     for images, accuracy, fraction in zip(x, table["accuracy"] * 100, table["fraction"]):
-        axis.annotate(f"{fraction:.0%}", (images, accuracy), textcoords="offset points", xytext=(0, 8),
+        axis.annotate(f"{fraction:.0%}", (images, accuracy), textcoords="offset points", xytext=(0, -15),
                       ha="center", fontsize=8)
     axis.axhline(90, linestyle="--", color="gray", label="90% target")
+    axis.set_ylim(top=min(100.5, max(table["accuracy"].max() * 100, table["reward_percent_of_max"].max()) + 0.6))
     axis.set_xscale("log")      # 10% -> 100% is a 10x jump, so a log scale spaces the points evenly
     axis.set_xlabel("Training images (log scale)")
     axis.set_ylabel("%")

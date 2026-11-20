@@ -30,6 +30,30 @@ It is "Step 2" of a two-step idea: Step 1 finds a mark, Step 2 (this CNN) names 
 
 Left to right: the confusion matrix on validation images; the phone app reading a hand-drawn triangle; and a current weakness. A real round object (a bottle bottom held in a hand) comes out as **unknown**, because training so far used only drawings and silhouettes. These numbers are on public drawings. The honest **test** score comes from our own photos, which we're collecting next (Stage B). More plots: [`results/lesson36/`](results/lesson36/).
 
+### Training charts
+
+The same charts TensorBoard shows live during training (`tensorboard --logdir runs`), saved as pictures.
+
+**Reward convergence.** The average reward per validation image after each epoch (one full pass over the training images), scored with our reward rubric. The dashed line is the best possible score. The dotted line marks where the whole network starts learning ("finetune"); before that, only the new final layer learns. It climbs quickly, then levels off just under the maximum.
+
+<img src="results/lesson36/reward_convergence.png" alt="Reward convergence graph" width="620">
+
+**Loss and accuracy, training vs validation.** Loss measures how wrong the guesses are (lower is better). The training and validation lines stay close together, so the model is learning general shapes rather than memorizing its training images ("overfitting"). Validation scores slightly higher than training because training images are deliberately distorted (below), which makes them harder.
+
+<img src="results/lesson36/training_curves.png" alt="Loss and accuracy per epoch" width="820">
+
+**Learning curve.** Accuracy and reward when training on 10%, 25%, 50% and 100% of the training images. Every size clears the 90% target; past 50%, more drawings of the same kind barely help.
+
+<img src="results/lesson36/learning_curve_val.png" alt="Learning curve" width="620">
+
+**What the model sees.** One real training batch. Each image is randomly rotated, tilted, blurred, given noise, made thicker or thinner, or partly covered by colored blocks ("augmentation"), so the model copes with messy real photos.
+
+<img src="results/lesson36/what_the_model_sees.jpg" alt="A training batch after augmentation" width="820">
+
+**Most confident mistakes.** The validation images the model got wrong while being most sure of itself. Many are bad labels in the public data rather than real model failures: a single line labeled "quadrilateral," a scribbled word labeled "ellipse." Most of the rest come out as "unknown," the safe kind of mistake.
+
+<img src="results/lesson36/error_gallery_val.jpg" alt="Most confident mistakes on validation images" width="820">
+
 ## Setup
 
 You need Python **3.11 or 3.12** and `git`. PyTorch is installed **separately** from `requirements.txt` because the right build depends on whether the computer has an NVIDIA GPU. Data and trained models are **not** in git: the scripts below download and build them.
