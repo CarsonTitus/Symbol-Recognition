@@ -39,3 +39,17 @@ kaggle.json
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Phone-model export environment (needs an older PyTorch; see README)
+.venv-export/
+
+# Android build output and machine-specific settings
+android/.gradle/
+android/.kotlin/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+*.iml
+# Model files are copied in by scripts/export_tflite.py --android (not committed)
+android/app/src/main/assets/

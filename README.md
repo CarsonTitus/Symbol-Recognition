@@ -306,6 +306,50 @@ card_photo.jpg -> triangle (92.0%)   [unknown_symbol 2.6% | triangle 92.0% | qua
 
 These commands are the same in PowerShell; just use `\` instead of `/` in file paths if you prefer.
 
+## Run the model on the phone (Android demo app)
+
+The `android/` folder is a small app for the Pixel: point the camera at a shape, keep it inside the white box, and the answer (e.g. **TRIANGLE 91%**) appears live at the bottom. Everything runs on the phone, offline. The answer only changes when the same answer shows up in 3 of the last 5 frames, so it doesn't flicker.
+
+**1. One-time setup: the export environment.** The converter (`litert-torch`) needs an older PyTorch than training, so it gets its own environment:
+
+```bash
+uv venv --python 3.12 .venv-export
+```
+
+```bash
+VIRTUAL_ENV=.venv-export uv pip install "torch<2.15" torchvision --index-url https://download.pytorch.org/whl/cpu --extra-index-url https://pypi.org/simple --index-strategy unsafe-best-match
+```
+
+```bash
+VIRTUAL_ENV=.venv-export uv pip install litert-torch timm pyyaml numpy pillow albumentations opencv-python-headless pandas
+```
+
+```bash
+VIRTUAL_ENV=.venv-export uv pip install --no-deps -e .
+```
+
+**2. Export the model** (after every training run you want on the phone):
+
+```bash
+.venv-export/bin/python scripts/export_tflite.py --run latest --android
+```
+
+This converts `best.pt` into `symbolcnn.tflite` (TFLite, now called LiteRT: Google's format for AI on phones), checks it gives the same answers as PyTorch on 100 validation images, and copies it into `android/app/src/main/assets/`. The model file is not in git, so this step is needed before the first build.
+
+**3. Build and install.** Plug in the Pixel with USB debugging on (Settings → About phone → tap Build number 7 times, then Developer options → USB debugging). Either open the `android/` folder in Android Studio and press the green Run button, or:
+
+```bash
+cd android
+```
+
+```bash
+JAVA_HOME=~/.local/opt/android-studio/jbr ./gradlew installDebug
+```
+
+The first build downloads Gradle and the libraries (a few minutes).
+
+**Tips:** fill most of the box with the shape; hold steady for a moment. The bottom line shows every class probability and how many milliseconds the model took per frame.
+
 ## Settings
 
 All settings live in [`configs/`](configs/):
@@ -334,7 +378,8 @@ data/               datasets: NOT in git except README.md and SOURCES.md
 src/symbolcnn/      project code: config, reward, utils, imageprep, datasets, models, metrics, plots
 docs/               scope revision draft and other write-ups
 scripts/            command-line tools: check_env, download_public, prepare_data, train, evaluate,
-                    learning_curve, predict
+                    learning_curve, predict, export_tflite
+android/            the phone demo app (Kotlin, CameraX, LiteRT)
 tests/              pytest unit tests
 results/            small final plots/tables for the presentation
 runs/               one folder per training run: NOT in git
