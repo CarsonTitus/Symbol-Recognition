@@ -212,7 +212,7 @@ def run_evaluation(run_dir: Path, split: str, device: str, checkpoint: str = "be
         if split == "test_novel_shapes":
             result["novel_shapes"] = novel_shape_summary(y_pred, classes)
             print(f"Never-seen shapes called unknown_symbol: {result['novel_shapes']['called_unknown_symbol']:.1%}"
-                  f", called triangle (false alarm): {result['novel_shapes']['called_triangle']:.1%}")
+                  f", called a named shape (false alarm): {result['novel_shapes']['called_a_named_shape']:.1%}")
         results[name] = result
 
     # Files for the presentation. The confusion matrix and gallery use the plain (no threshold) answers.

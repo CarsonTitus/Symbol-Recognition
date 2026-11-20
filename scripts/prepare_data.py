@@ -66,7 +66,7 @@ class Item:
     """One image waiting to be processed."""
     source: str           # hds, quickdraw, hf_geometric_shapes, kaggle.<name>, own
     source_class: str     # the class name in the original dataset
-    label: str            # OUR class: no_symbol, unknown_symbol, triangle
+    label: str            # OUR class (config "classes"), e.g. triangle or ellipse
     drawer_id: str        # who drew it ("" if unknown)
     original: str         # where it came from, for the manifest
     kind: str             # how to load it: "file", "array" or "bytes"

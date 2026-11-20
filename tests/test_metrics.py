@@ -58,4 +58,11 @@ def test_novel_shape_summary():
     assert summary["called_unknown_symbol"] == pytest.approx(0.75)
     assert summary["called_triangle"] == pytest.approx(0.25)
     assert summary["called_no_symbol"] == 0.0
+    assert summary["called_a_named_shape"] == pytest.approx(0.25)
     assert summary["images"] == 4
+
+
+def test_novel_shape_false_alarms_count_every_named_shape():
+    classes = ["no_symbol", "unknown_symbol", "triangle", "quadrilateral", "ellipse"]
+    summary = novel_shape_summary([1, 2, 3, 4], classes)   # 1 good answer, 3 false alarms
+    assert summary["called_a_named_shape"] == pytest.approx(0.75)

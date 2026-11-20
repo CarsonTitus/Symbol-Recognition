@@ -1,12 +1,16 @@
-# Hand-Drawn Symbol Recognition CNN
+# Symbol Recognition CNN
 
-CS471 Artificial Intelligence final project. This repo trains a CNN (convolutional neural network) that labels each image as one of:
+CS471 Artificial Intelligence final project. This repo trains a CNN (convolutional neural network) that looks at a close-up image and names the **outline shape of the main thing in it**, whether that thing is drawn, painted, printed or a real object (a ball is an ellipse; a kite or a window is a quadrilateral). Each image gets one of five labels:
 
-| Output | Meaning |
-|---|---|
-| `no_symbol` | no drawn symbol |
-| `unknown_symbol` | a drawn symbol that is not a triangle |
-| `triangle` | a hand-drawn triangle |
+| Output | Meaning | Examples |
+|---|---|---|
+| `no_symbol` | no clear shape | blank card, wall, carpet, clutter, a plant |
+| `unknown_symbol` | a clear shape or mark, but not one of the three below | star, arrow, hexagon, zigzag |
+| `triangle` | a triangle | drawn triangle, yield sign, any triangle type |
+| `quadrilateral` | any 4-sided shape | square, rectangle, diamond, kite, window, card |
+| `ellipse` | a circle or oval | drawn circle, ball, plate, clock |
+
+The classes were revised from three (no symbol / unknown / triangle) to these five on 2026-11-20, with the course's permission to revise the scope.
 
 It is "Step 2" (the classifier) of the PSYOP-VISR capstone app. The full project brief is in [`CLAUDE.md`](CLAUDE.md).
 
@@ -203,7 +207,7 @@ python scripts/download_public.py --sources kaggle
 python scripts/prepare_data.py --workers 40
 ```
 
-This sorts every downloaded image (and our own photos, once there are some in `data/raw_own/`) into `data/processed/{train,val,test}/{no_symbol,unknown_symbol,triangle}/` as 224×224 RGB images, and writes `data/processed/manifest.csv`. It takes about a minute on the tower and about 1 GB of disk.
+This sorts every downloaded image (and our own photos, once there are some in `data/raw_own/`) into `data/processed/{train,val,test}/<class>/` (one folder per output above) as 224×224 RGB images, and writes `data/processed/manifest.csv`. It takes about a minute on the tower and about 1 GB of disk.
 
 - Our photos are split **by drawer** (70/15/15), so one person's drawings never appear in two splits.
 - Public data only goes into train/val. **Test = our own photos only.**
@@ -272,13 +276,15 @@ Change a setting in the YAML file, not in the Python code. Each training run sav
 
 ### Reward matrix (from the submitted scope)
 
-| True \ Predicted | no_symbol | unknown_symbol | triangle |
-|---|---|---|---|
-| no_symbol | 1.0 | 0.0 | 0.0 |
-| unknown_symbol | 0.0 | 0.5 | 0.0 |
-| triangle | 0.0 | 0.5 | 1.0 |
+| True \ Predicted | no_symbol | unknown_symbol | triangle | quadrilateral | ellipse |
+|---|---|---|---|---|---|
+| no_symbol | **1.0** | 0.0 | 0.0 | 0.0 | 0.0 |
+| unknown_symbol | 0.0 | **0.5** | 0.0 | 0.0 | 0.0 |
+| triangle | 0.0 | 0.5 | **1.0** | 0.0 | 0.0 |
+| quadrilateral | 0.0 | 0.5 | 0.0 | **1.0** | 0.0 |
+| ellipse | 0.0 | 0.5 | 0.0 | 0.0 | **1.0** |
 
-Results report the average reward and the **reward as a percentage of the best possible**, because a correct `unknown_symbol` can only earn 0.5.
+In words: naming the right shape or correctly saying "no symbol" earns +1; "symbol detected but cannot identify" earns +0.5; anything wrong (including naming the wrong shape) earns 0. Results report the average reward and the **reward as a percentage of the best possible**, because a correct `unknown_symbol` can only earn 0.5.
 
 ## Repository layout
 

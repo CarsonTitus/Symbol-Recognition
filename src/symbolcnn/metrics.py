@@ -2,13 +2,13 @@
 metrics.py - the numbers that describe how good the model is (CLAUDE.md §8).
 
 What this does:
-    confusion_matrix()     3x3 table: row = TRUE label, column = PREDICTED label,
+    confusion_matrix()     5x5 table: row = TRUE label, column = PREDICTED label,
                            each cell = how many images. The diagonal is the correct answers.
     row_percentages()      the same table, but each row turned into percentages
                            ("of all real triangles, 93% were called triangle").
     per_class_stats()      precision, recall and F1 for every class, plus per-class accuracy.
     novel_shape_summary()  for the never-seen-shapes test: what share was called
-                           unknown_symbol (good) vs triangle (a false alarm).
+                           unknown_symbol (good) vs a named shape (a false alarm).
 
 The three key words, in plain language (for the triangle class):
     precision = when the model SAYS "triangle", how often is it right?   (low = false alarms)
@@ -16,7 +16,8 @@ The three key words, in plain language (for the triangle class):
     F1        = one number that balances the two (their "harmonic mean")
     For a single class, recall is the same as that class's accuracy.
 
-Labels are class INDEXES (0 = no_symbol, 1 = unknown_symbol, 2 = triangle).
+Labels are class INDEXES in the order of config "classes"
+(0 = no_symbol, 1 = unknown_symbol, 2 = triangle, 3 = quadrilateral, 4 = ellipse).
 Only NumPy is used, so the unit tests run fast without PyTorch.
 """
 from __future__ import annotations
@@ -70,10 +71,13 @@ def accuracy(y_true, y_pred) -> float:
 def novel_shape_summary(y_pred, classes: list[str]) -> dict:
     """For never-seen shapes (true label is always unknown_symbol): share of each prediction.
 
-    "called_unknown" is the good outcome. "called_triangle" is a false alarm an
-    operator would see in the glasses (CLAUDE.md §5c).
+    "called_unknown_symbol" is the good outcome. "called_a_named_shape" (triangle,
+    quadrilateral or ellipse) is a false alarm an operator would see in the glasses
+    (CLAUDE.md §5c). "called_no_symbol" means the mark was missed altogether.
     """
     y_pred = np.asarray(y_pred, dtype=int)
     total = len(y_pred)
-    return {f"called_{name}": _safe_divide((y_pred == k).sum(), total) for k, name in enumerate(classes)} | {
-        "images": total}
+    summary = {f"called_{name}": _safe_divide((y_pred == k).sum(), total) for k, name in enumerate(classes)}
+    named = [name for name in classes if name not in ("no_symbol", "unknown_symbol")]
+    summary["called_a_named_shape"] = sum(summary[f"called_{name}"] for name in named)
+    return summary | {"images": total}

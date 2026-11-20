@@ -3,7 +3,7 @@ test_reward.py - prove the reward math matches the submitted rubric (CLAUDE.md Â
 
 Run with:  pytest
 Every expected number here was worked out by hand, so the team can check them on paper.
-Label indexes: 0 = no_symbol, 1 = unknown_symbol, 2 = triangle.
+Label indexes: 0 = no_symbol, 1 = unknown_symbol, 2 = triangle, 3 = quadrilateral, 4 = ellipse.
 """
 from pathlib import Path
 
@@ -21,7 +21,7 @@ from symbolcnn.reward import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-NO, UNK, TRI = 0, 1, 2
+NO, UNK, TRI, QUAD, ELL = 0, 1, 2, 3, 4
 
 
 @pytest.fixture
@@ -33,9 +33,12 @@ def matrix():
 def test_matrix_matches_submitted_rubric(matrix):
     # rows = true label, columns = predicted label
     expected = np.array([
-        [1.0, 0.0, 0.0],   # true no_symbol
-        [0.0, 0.5, 0.0],   # true unknown_symbol
-        [0.0, 0.5, 1.0],   # true triangle
+        # pred: no   unk  tri  quad ell
+        [1.0, 0.0, 0.0, 0.0, 0.0],   # true no_symbol
+        [0.0, 0.5, 0.0, 0.0, 0.0],   # true unknown_symbol
+        [0.0, 0.5, 1.0, 0.0, 0.0],   # true triangle
+        [0.0, 0.5, 0.0, 1.0, 0.0],   # true quadrilateral
+        [0.0, 0.5, 0.0, 0.0, 1.0],   # true ellipse
     ])
     assert np.array_equal(matrix, expected)
 
@@ -51,6 +54,14 @@ def test_every_rubric_case(matrix):
         (TRI, NO, 0.0),   # missed a triangle                  -> 0
         (UNK, NO, 0.0),   # missed a symbol                    -> 0
         (UNK, TRI, 0.0),  # called a non-triangle a triangle   -> 0
+        (QUAD, QUAD, 1.0),  # quadrilateral identified         -> +1
+        (ELL, ELL, 1.0),    # ellipse identified               -> +1
+        (QUAD, UNK, 0.5),   # detected but cannot identify     -> +0.5
+        (ELL, UNK, 0.5),    # detected but cannot identify     -> +0.5
+        (TRI, ELL, 0.0),    # named the WRONG shape            -> 0
+        (QUAD, TRI, 0.0),   # named the WRONG shape            -> 0
+        (UNK, QUAD, 0.0),   # gave a name to an unnamed shape  -> 0
+        (NO, ELL, 0.0),     # false alarm                      -> 0
     ]
     for true, pred, expected in cases:
         assert per_image_rewards([true], [pred], matrix)[0] == expected, (true, pred)

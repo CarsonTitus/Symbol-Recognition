@@ -36,7 +36,7 @@ def test_tiny_learning_curve_end_to_end(processed, tmp_path):  # noqa: F811
     out = next((tmp_path / "runs").iterdir())
     table = pd.read_csv(out / "learning_curve_val.csv")
     assert table["fraction"].tolist() == [0.5, 1.0]
-    assert table["train_images"].tolist() == [12, 24]        # 50% and 100% of 8 images x 3 classes
+    assert table["train_images"].tolist() == [20, 40]        # 50% and 100% of 8 images x 5 classes
     assert table["accuracy"].between(0, 1).all()
     assert (out / "learning_curve_val.png").exists()
     assert (out / "logs" / "frac50.log").exists()
