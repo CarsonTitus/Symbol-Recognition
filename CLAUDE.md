@@ -1,10 +1,10 @@
-# Project Brief: Hand-Drawn Symbol Recognition CNN
+# Project Brief: Symbol Recognition CNN
 
-**Handoff document for Claude Code.** Save this file as `CLAUDE.md` in the root of the new GitHub repo. Claude Code reads `CLAUDE.md` automatically at the start of every session, so this file is the project's memory.
+**Project brief.** Claude Code reads `CLAUDE.md` automatically at the start of every session, so this file is the project's memory.
 
 - **Course:** CS471 Artificial Intelligence, Final Project (250 pts)
-- **Parent project:** PSYOP-VISR capstone (SOCOM Ignite 2026), an Android app on a Pixel 9 Pro XL that drives Even Realities G2 smart glasses. Existing app repo: https://github.com/CarsonTitus/SOCOMIgnite2026
-- **This repo's job:** train, evaluate and export the CNN that recognizes hand-drawn symbols. Later, the exported model plugs into the app.
+- **This repo's job:** train, evaluate and export the CNN that names shapes, and run it live in a small Android demo app (`android/`).
+- **Scope of this repo:** this course project only. It is kept separate from any other project; don't reference outside projects here.
 
 ---
 
@@ -27,15 +27,15 @@
 
 ## 1. The problem in plain language
 
-Operators in unfamiliar places may not recognize local symbols (gang signs, cultural or religious markings) that tell them something about the area. The capstone app points the phone camera at the environment and shows a short explanation in the G2 glasses when it recognizes a symbol.
+Operators in unfamiliar places may not recognize local symbols (gang signs, cultural or religious markings) that tell them something about the area. A phone camera pointed at the surroundings could recognize such a symbol and show a short explanation.
 
 For this class we use **basic shapes as stand-ins** ("proxies") for real symbols. That keeps the project unclassified and doable in an academic lab. The proof of concept: name the shape (**triangle, quadrilateral or ellipse**) of a hand-drawn mark on a notecard **or** of a real object (a ball, a sign, a window).
 
-### Why the current app fails at this
+### Why ordinary object detectors fail at this
 
-The app's object detector sees the notecard and calls it "paper," but never sees the triangle drawn on it. Reasons:
+A general object detector sees a notecard and calls it "paper," but never sees the triangle drawn on it. Reasons:
 
-- **Too few pixels.** The app captures 640×480 frames (about 0.3 megapixels from a 50 MP camera), and the detector shrinks them further to 416 px. A pen line ends up thinner than one pixel, so the drawing basically disappears.
+- **Too few pixels.** Camera apps often analyze small 640×480 frames (about 0.3 megapixels from a 50 MP camera), and detectors shrink them further (e.g. to 416 px). A pen line ends up thinner than one pixel, so the drawing basically disappears.
 - **Wrong kind of model for the job.** General object detectors (like YOLO, "You Only Look Once") are trained on everyday objects such as TVs and keyboards. They have no "triangle" category, and they're built to box whole objects, not markings *on* objects.
 - **Thin lines are hard for image AI.** Pretrained image networks lean on texture and solid areas. A thin pen outline looks like surface texture of the card.
 
@@ -43,7 +43,7 @@ The app's object detector sees the notecard and calls it "paper," but never sees
 
 Use two steps. **Step 1** finds "there is a drawn mark here." **Step 2** cuts out a sharp, high-resolution close-up of that spot and classifies it.
 
-**This repo builds Step 2: the classifier CNN.** Step 1 and the phone integration are capstone work (§12).
+**This repo builds Step 2: the classifier CNN.** In the phone demo app, the user's aiming box stands in for Step 1 (§12).
 
 ---
 
@@ -311,7 +311,7 @@ symbol-cnn/
 │   ├── evaluate.py           # all §8 outputs
 │   ├── learning_curve.py     # runs train.py at 10/25/50/100% (can split across 2 GPUs)
 │   ├── predict.py            # classify a single image or folder from the terminal (checkpoint demo)
-│   └── export_tflite.py      # stretch: convert to TFLite for the Pixel (§12)
+│   └── export_tflite.py      # convert to TFLite for the phone app (§12)
 ├── tests/
 │   ├── test_reward.py        # reward matrix math is correct
 │   └── test_datasets.py      # no drawer appears in two splits; class folders correct
@@ -366,23 +366,13 @@ card_photo.jpg -> triangle (92.0%)   [unknown_symbol 2.6% | triangle 92.0% | qua
 
 ---
 
-## 12. Later: plugging into the capstone app (not needed for the grade)
+## 12. Phone demo app (`android/`; not needed for the grade)
 
-What the existing app repo (`SOCOMIgnite2026`) does today, and what to change:
+**Export path:** PyTorch → TFLite with `scripts/export_tflite.py` (Google's `litert-torch` converter, in its own `.venv-export` environment). TFLite is now called **LiteRT**: Google's format for running AI on phones. The export bakes the color normalization and softmax into the model and checks it gives the same predictions as PyTorch on 100 validation images before trusting it. FP16 (16-bit numbers; half the size, nearly no accuracy loss) is an option for a phone GPU later.
 
-| Today | Problem | Change |
-|---|---|---|
-| `YoloV8Detector.kt` sends frames to the Roboflow website at most once every 2 s | Needs internet; useless down range; slow | Run the detector **on the phone** |
-| Camera analysis at 640×480 (`MainActivity.kt`) | Drawings vanish | Add a higher-resolution stream; **crop the symbol area from the high-res frame** before classifying |
-| MobileCLIP prompts use hand-typed token codes; several prompts have identical codes | Can't tell those labels apart | Regenerate the codes with the real tokenizer, or replace this step with our CNN |
-| Symbol meanings hardcoded in Kotlin maps; `CulturalContextEngine` is an in-memory list, not a real database | Adding a symbol means rebuilding the app | Build a **SymbolDB** (SQLite file): symbol id, short HUD title, 1–2 line meaning, alert level, detail pages |
-| Every frame runs OCR + CLIP + detection on the CPU only | Slow, drains battery | Use the GPU delegate (TFLite's GPU mode); run heavy steps only on new detections |
+**The app:** CameraX preview with a centered aiming box. The box's contents are cropped from a 1600×1200 analysis frame (sharper than 640×480, so pen lines survive), classified on the phone (offline), and the 0.6 confidence threshold is applied. The answer only changes after the same answer appears in 3 of the last 5 frames. About 18 ms per frame on the Pixel 9 Pro XL.
 
-**Export path for this model:** PyTorch → TFLite. TFLite is now called **LiteRT**: Google's format for running AI on phones. Options: Google's `ai-edge-torch` converter, or PyTorch → ONNX (Open Neural Network Exchange, a universal model format) → `onnx2tf`. Verify the converted model gives the same predictions as PyTorch on 100 test images before trusting it. Use FP16 (16-bit numbers; half the size, nearly no accuracy loss) for the phone's GPU.
-
-**G2 display constraint:** 576×288 pixels per eye, green monochrome, text pushed over Bluetooth. Pop-ups must be about 3 short lines: `[!] TRIANGLE` / short meaning / direction (LEFT / CENTER / RIGHT). Only alert after the same symbol is seen in 3 of 5 frames, and don't repeat the same alert within 30–60 s.
-
-**Future upgrade (capstone):** switch from a fixed 3-class classifier to an **embedding model with a symbol database**. The CNN turns each crop into a list of numbers (an "embedding"), and the app finds the closest match among reference images stored in the database. New symbols are added by inserting reference photos, with no retraining. The fine-tuned MobileNetV3 from this repo is a natural starting point for that.
+**Possible later upgrade:** switch from a fixed set of classes to an **embedding model with a symbol database**. The CNN turns each crop into a list of numbers (an "embedding"), and the app finds the closest match among reference images stored in the database. New symbols are added by inserting reference photos, with no retraining. The fine-tuned MobileNetV3 from this repo is a natural starting point for that.
 
 ---
 
@@ -416,9 +406,6 @@ What the existing app repo (`SOCOMIgnite2026`) does today, and what to change:
 | **Embedding** | A list of numbers that summarizes an image; similar images get similar lists |
 | **YOLO** | "You Only Look Once," a popular fast object detector |
 | **OCR** | Optical Character Recognition: reading text in images |
-| **CLIP / MobileCLIP** | Models that match images to text descriptions |
-| **BLE** | Bluetooth Low Energy, how the phone talks to the G2 glasses |
-| **HUD** | Heads-Up Display: the text shown in the glasses |
 
 ---
 

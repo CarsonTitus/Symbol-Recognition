@@ -141,7 +141,7 @@ class MainActivity : ComponentActivity() {
         val isShape = name != "unknown_symbol"
         val percent = (result.confidence * 100).roundToInt()
         answerText.text = if (isShape) "${name.uppercase()}  $percent%" else "UNKNOWN"
-        answerText.setTextColor(if (isShape) Color.rgb(0, 255, 102) else Color.LTGRAY)   // green like the G2 HUD
+        answerText.setTextColor(if (isShape) Color.rgb(0, 255, 102) else Color.LTGRAY)   // green = a named shape
         val probs = model.labels.indices.joinToString("  ") { i ->
             val short = model.labels[i].removeSuffix("_symbol").take(5)
             "$short ${(result.probabilities[i] * 100).roundToInt()}%"

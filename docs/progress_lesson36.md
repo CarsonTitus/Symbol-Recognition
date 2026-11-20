@@ -20,7 +20,7 @@ On validation data, the model reaches **99.4% accuracy (99.6% of the maximum rew
 ## Challenges
 
 - The first version mislabeled some public data: Quick, Draw! "diamonds" are often triangle-shaped gems, and some Kaggle images are near-duplicate video frames. We found these through error galleries and fixed the class mappings.
-- We revised the scope from one named shape to three, and to include real objects, because the capstone's object detector cannot see drawn shapes.
+- We revised the scope from one named shape to three, and to include real objects, because ordinary object detectors (like YOLO) recognize objects but cannot see drawn shapes.
 - Validation scores come from public drawings. The honest test, on our own photos, is still ahead.
 
 ## Team contributions

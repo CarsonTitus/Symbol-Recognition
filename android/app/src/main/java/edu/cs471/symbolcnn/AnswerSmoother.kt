@@ -5,7 +5,7 @@ package edu.cs471.symbolcnn
  *
  * The model answers many times a second, and a shaky hand can make single frames wrong.
  * The shown answer only changes when the same answer appears in at least `needed` of the
- * last `window` frames (3 of 5: the same rule planned for the G2 glasses, CLAUDE.md §12).
+ * last `window` frames (3 of 5, CLAUDE.md §12).
  */
 class AnswerSmoother(private val window: Int = 5, private val needed: Int = 3) {
     private val recent = ArrayDeque<String>()
