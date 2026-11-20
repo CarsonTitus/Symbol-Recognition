@@ -1,4 +1,4 @@
 filename,class,drawer_id,pen,surface,distance_m,angle_deg,lighting,notes
 EXAMPLE_IMG_0001.jpg,triangle,D01,sharpie_thin,white_notecard,1,0,room,delete these example rows
-EXAMPLE_IMG_0002.jpg,no_symbol,D01,none,desk,2,30,daylight,blank desk
+EXAMPLE_IMG_0002.jpg,unknown_symbol,D01,none,desk,2,30,daylight,blank desk (no shape counts as unknown)
 EXAMPLE_IMG_0003.jpg,novel_shape,D02,ballpoint,lined_card,0.3,60,dim,spiral (goes in novel_shapes/)

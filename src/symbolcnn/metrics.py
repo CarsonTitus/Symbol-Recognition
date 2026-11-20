@@ -2,7 +2,7 @@
 metrics.py - the numbers that describe how good the model is (CLAUDE.md §8).
 
 What this does:
-    confusion_matrix()     5x5 table: row = TRUE label, column = PREDICTED label,
+    confusion_matrix()     4x4 table: row = TRUE label, column = PREDICTED label,
                            each cell = how many images. The diagonal is the correct answers.
     row_percentages()      the same table, but each row turned into percentages
                            ("of all real triangles, 93% were called triangle").
@@ -17,7 +17,7 @@ The three key words, in plain language (for the triangle class):
     For a single class, recall is the same as that class's accuracy.
 
 Labels are class INDEXES in the order of config "classes"
-(0 = no_symbol, 1 = unknown_symbol, 2 = triangle, 3 = quadrilateral, 4 = ellipse).
+(0 = unknown_symbol, 1 = triangle, 2 = quadrilateral, 3 = ellipse).
 Only NumPy is used, so the unit tests run fast without PyTorch.
 """
 from __future__ import annotations
@@ -73,11 +73,11 @@ def novel_shape_summary(y_pred, classes: list[str]) -> dict:
 
     "called_unknown_symbol" is the good outcome. "called_a_named_shape" (triangle,
     quadrilateral or ellipse) is a false alarm an operator would see in the glasses
-    (CLAUDE.md §5c). "called_no_symbol" means the mark was missed altogether.
+    (CLAUDE.md §5c).
     """
     y_pred = np.asarray(y_pred, dtype=int)
     total = len(y_pred)
     summary = {f"called_{name}": _safe_divide((y_pred == k).sum(), total) for k, name in enumerate(classes)}
-    named = [name for name in classes if name not in ("no_symbol", "unknown_symbol")]
+    named = [name for name in classes if name != "unknown_symbol"]
     summary["called_a_named_shape"] = sum(summary[f"called_{name}"] for name in named)
     return summary | {"images": total}

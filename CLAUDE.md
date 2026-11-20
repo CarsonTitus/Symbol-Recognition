@@ -49,14 +49,14 @@ Use two steps. **Step 1** finds "there is a drawn mark here." **Step 2** cuts ou
 
 ## 2. Scope (revised 2026-11-20; ask before changing)
 
-The team first turned in a 3-output scope (no symbol / unknown / triangle). On 2026-11-20 the team revised it, using the course's option to revise the scope doc, to name **three shapes** and to cover **real objects as well as drawings**: the original problem was that YOLO sees objects but not drawn shapes, so the classifier must handle both. The wording to submit is in `docs/scope_revision.md`. All deliverables must satisfy the revised scope. **Ask before changing it again.**
+The team first turned in a 3-output scope (no symbol / unknown / triangle). On 2026-11-20 the team revised it, using the course's option to revise the scope doc, to name **three shapes**, to cover **real objects as well as drawings**, and to fold "no symbol" into "unknown" (simpler; the separate class added complexity the assignment doesn't need): the original problem was that YOLO sees objects but not drawn shapes, so the classifier must handle both. The wording to submit is in `docs/scope_revision.md`. All deliverables must satisfy the revised scope. **Ask before changing it again.**
 
 | Field | Scope (summary) |
 |---|---|
 | **Operational problem** | Alert operators to symbology (e.g., gang signs) in their surroundings. Basic shapes are the proof of concept. |
 | **States** | Each image (a close-up of a drawn mark or a real-world object) is a state. |
-| **Actions** | The agent labels each image as one of five outputs: **"no symbol"**, **"symbol detected but cannot identify"**, **"symbol detected: triangle"**, **"symbol detected: quadrilateral"**, or **"symbol detected: ellipse"**. |
-| **Reward** | Incorrect (including naming the wrong shape) → **+0**. Symbol detected but can't identify → **+0.5**. Symbol detected and identified → **+1**. Correctly says no symbol → **+1**. |
+| **Actions** | The agent labels each image as one of four outputs: **"symbol detected: triangle"**, **"symbol detected: quadrilateral"**, **"symbol detected: ellipse"**, or **"unknown / cannot identify"** (anything else, including images with no symbol at all). |
+| **Reward** | Incorrect (including naming the wrong shape, or naming a shape when there is none) → **+0**. Unknown / cannot identify → **+0.5**. Shape detected and correctly identified → **+1**. |
 | **Algorithm** | **CNN** (convolutional neural network) |
 | **Lesson 36 checkpoint** | Show training output and the trained model recognizing symbols correctly **~90%** of the time across different dataset sizes. |
 | **Lesson 41 evaluation** | **Confusion matrix** and **reward convergence graph**, showing **90% accuracy on test data**. |
@@ -73,36 +73,34 @@ A CNN doesn't learn from rewards; it learns from labeled examples by reducing a 
 
 Rows are the **true** label and columns are the model's **prediction**.
 
-| True \ Predicted | no_symbol | unknown_symbol | triangle | quadrilateral | ellipse |
-|---|---|---|---|---|---|
-| **no_symbol** | **1.0** | 0.0 | 0.0 | 0.0 | 0.0 |
-| **unknown_symbol** | 0.0 | **0.5** | 0.0 | 0.0 | 0.0 |
-| **triangle** | 0.0 | **0.5** | **1.0** | 0.0 | 0.0 |
-| **quadrilateral** | 0.0 | **0.5** | 0.0 | **1.0** | 0.0 |
-| **ellipse** | 0.0 | **0.5** | 0.0 | 0.0 | **1.0** |
+| True \ Predicted | unknown_symbol | triangle | quadrilateral | ellipse |
+|---|---|---|---|---|
+| **unknown_symbol** | **0.5** | 0.0 | 0.0 | 0.0 |
+| **triangle** | **0.5** | **1.0** | 0.0 | 0.0 |
+| **quadrilateral** | **0.5** | 0.0 | **1.0** | 0.0 |
+| **ellipse** | **0.5** | 0.0 | 0.0 | **1.0** |
 
 Notes:
 
 - **True shape, predicted unknown = 0.5.** The model saw a symbol but couldn't name it, which matches the rubric literally.
 - **Wrong shape name = 0.** Calling a triangle an ellipse is incorrect.
-- **True unknown, predicted unknown = 0.5** also follows the rubric literally ("detected but cannot identify" is worth +0.5). The best possible average reward is therefore below 1.0 whenever unknown symbols are in the test set. Always report **reward as a percentage of the maximum possible** for that dataset, alongside the raw average.
+- **True unknown, predicted unknown = 0.5** also follows the rubric literally ("cannot identify" is worth +0.5). This includes blank cards and walls: there is no separate "no symbol" output. The best possible average reward is therefore below 1.0 whenever unknown symbols are in the test set. Always report **reward as a percentage of the maximum possible** for that dataset, alongside the raw average.
 - **Team decision (2026-11-20):** a correct "unknown" stays at **0.5** (the literal rubric).
 
 ---
 
-## 3. Classes (the five outputs)
+## 3. Classes (the four outputs)
 
 **The labeling rule:** the class is the **outline of the main thing in the cropped image**, whether it is drawn, painted, printed or a real object.
 
 | Class folder name | Meaning | Examples |
 |---|---|---|
-| `no_symbol` | No clear shape | Blank notecards, walls, desks, floors, carpet, clutter, **plants**, irregular objects, printed text with no shape |
-| `unknown_symbol` | A clear shape or mark that is none of the three named shapes | Stars, X's, arrows, hexagons, zigzags, squiggles |
+| `unknown_symbol` | Anything that is not one of the three named shapes, **including no shape at all** | Stars, X's, arrows, hexagons, zigzags, squiggles; blank notecards, walls, desks, floors, carpet, clutter, **plants**, irregular objects |
 | `triangle` | A triangle | Any drawn triangle (equilateral, skinny, rotated, sloppy), yield/warning signs |
 | `quadrilateral` | Any 4-sided shape | Squares, rectangles, diamonds, kites, parallelograms, trapezoids; cards, windows, books, a toy kite |
 | `ellipse` | A circle or oval | Drawn circles/ovals (nobody draws a perfect circle), balls, plates, clocks, coins |
 
-**Team decision (2026-11-20):** five outputs, real objects included (supersedes the 2026-11-18 three-shape decision).
+**Team decision (2026-11-20):** four outputs, real objects included (supersedes the 2026-11-18 three-shape decision). An earlier draft the same day had a separate `no_symbol` class; the team folded it into `unknown_symbol` to keep the scope simple.
 - `unknown_symbol` is trained on other clear shapes: stars, hexagons, zigzags, squiggles, lines (option 1 of three discussed; the alternatives were no unknown class, or unknown only from the confidence threshold).
 - **Held back** for the never-seen-shapes test, so they appear nowhere in training: hearts, the letter "A", lightning bolts.
 - **Left out** because their labels are unclear: octagons and smiley faces (their outlines are basically ellipses), Quick Draw "diamond" (about 1 in 4 is a triangle-shaped gem), triangle-like objects (mountain, tent, pizza).
@@ -156,7 +154,7 @@ Check each license before use and record it in `data/SOURCES.md`.
 | **Quick, Draw!** (Google) | Hugging Face `google/quickdraw`, or `https://storage.googleapis.com/quickdraw_dataset/full/numpy_bitmap/<category>.npy` | 50M doodles in 345 categories, as 28×28 bitmaps | `triangle` ← `triangle`. `unknown_symbol` ← e.g. `circle`, `square`, `hexagon`, `octagon`, `star`, `zigzag`, `line`, `lightning`, `diamond`, `arrow`, `smiley face`, `squiggle` | **Very small images (28×28).** Strokes are **white on black**: invert them to dark-on-light. Download only the categories needed (each file can be 100+ MB). **Leave out triangle-like categories** (e.g. `mountain`, `tent`, `pizza` slices) from `unknown_symbol`, or the labels will conflict. Cap each category at a few thousand samples. |
 | **Geometric Shapes Mathematics** | Kaggle `reevald/geometric-shapes-mathematics` | 20k hand-drawn shapes, 8 classes incl. triangle | `triangle` ← triangle; `unknown_symbol` ← others | Kite and trapezoid can look triangle-ish. Inspect samples. |
 | **Four Shapes** | Kaggle "four-shapes" | 16k camera-captured 200×200 images: square, star, circle, triangle | `triangle` ← triangle; `unknown_symbol` ← others | Real camera photos, so closest to the phone's view. |
-| **Geometric Shapes (text background)** | Hugging Face `0-ma/geometric-shapes` | Synthetic shapes; label "1" = text on a colored background, no shape | `no_symbol` ← label 1 | Synthetic; use as a minority of `no_symbol`. |
+| **Geometric Shapes (text background)** | Hugging Face `0-ma/geometric-shapes` | Synthetic shapes; label "1" = text on a colored background, no shape | `unknown_symbol` ← label 1 (blank background) | Synthetic; a minority of `unknown_symbol`. |
 
 Kaggle downloads need a free Kaggle account and an API token: Kaggle → Settings → API → Create New Token, which gives `kaggle.json`. Put it in `%USERPROFILE%\.kaggle\kaggle.json`. **Never commit it.**
 
@@ -172,7 +170,7 @@ Public data teaches "shapes in general." Our own Pixel photos teach "shapes on n
 - **Shapes:**
   - `triangle`: all sizes, rotated, equilateral and skinny, slightly open corners, double-traced lines.
   - `unknown_symbol`: circle, square, star, X, arrow, smiley, squiggle, letters, hearts.
-  - `no_symbol`: blank cards, cards with only a few words, desks, walls, floors.
+  - `unknown_symbol` also covers "nothing there": blank cards, cards with only a few words, desks, walls, floors, plants.
 - **Camera (Pixel 9 Pro XL):**
   - distances 0.3 m, 1 m, 2 m, 3 m
   - angles straight-on, 30°, 60°
@@ -197,9 +195,9 @@ Public data teaches "shapes in general." Our own Pixel photos teach "shapes on n
 
 ```
 data/processed/
-  train/{no_symbol,unknown_symbol,triangle}/
-  val/{no_symbol,unknown_symbol,triangle}/
-  test/{no_symbol,unknown_symbol,triangle}/          # own photos only
+  train/{unknown_symbol,triangle,quadrilateral,ellipse}/
+  val/{unknown_symbol,triangle,quadrilateral,ellipse}/
+  test/{unknown_symbol,triangle,quadrilateral,ellipse}/   # own photos only
   test_novel_shapes/unknown_symbol/                  # never-seen shapes
 ```
 
@@ -338,7 +336,7 @@ python scripts/predict.py --run runs/<latest> --image path\to\card_photo.jpg
 `predict.py` should print something like:
 
 ```
-card_photo.jpg -> triangle (94.1%)   [no_symbol 1.2% | unknown_symbol 4.7% | triangle 94.1%]
+card_photo.jpg -> triangle (92.0%)   [unknown_symbol 2.6% | triangle 92.0% | quadrilateral 2.9% | ellipse 2.5%]
 ```
 
 ---

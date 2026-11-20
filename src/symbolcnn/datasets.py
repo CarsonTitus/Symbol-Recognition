@@ -11,7 +11,7 @@ What this does:
                           so the model copes with messy real photos (CLAUDE.md §7).
     eval_transform()      no random changes; used for validation, test and predict.
     balanced_sampler()    picks rarer classes more often so each class is seen
-                          about equally (public data has far more drawn shapes than no_symbol images).
+                          about equally (public data has twice as many quadrilaterals as triangles).
 
 Why:
     PyTorch trains on batches of tensors (multi-dimensional number arrays).

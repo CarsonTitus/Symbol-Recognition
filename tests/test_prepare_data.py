@@ -106,7 +106,7 @@ def fake_data(tmp_path):
     # Our photos: 6 drawers x 3 classes x 2 photos, plus 2 novel-shape photos
     rows = []
     for d in range(6):
-        for label in ["no_symbol", "unknown_symbol", "triangle"]:
+        for label in ["unknown_symbol", "triangle", "ellipse"]:
             (raw_own / label).mkdir(parents=True, exist_ok=True)
             for n in range(2):
                 name = f"D{d}_{label}_{n}.jpg"
@@ -132,7 +132,7 @@ def test_prepare_end_to_end(fake_data):
 
     # Every expected image is there: 24 HDS + 20 Quick Draw + 2 HF + 36 own + 2 novel
     assert len(manifest) == 84
-    assert set(manifest[manifest.source == "hf_geometric_shapes"].label) == {"no_symbol"}
+    assert set(manifest[manifest.source == "hf_geometric_shapes"].label) == {"unknown_symbol"}
 
     # No drawer in two splits (novel shapes are a separate test set, so they're left out of this check)
     drawers = manifest[(manifest.drawer_id != "") & (manifest.split != "test_novel_shapes")]
