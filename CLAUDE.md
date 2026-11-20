@@ -345,14 +345,14 @@ card_photo.jpg -> triangle (92.0%)   [unknown_symbol 2.6% | triangle 92.0% | qua
 
 ### Lesson 36: Checkpoint ("ugly but functional", 50 pts)
 
-- [ ] Repo created with the structure above, plus README and requirements; environment verified on the tower (§4)
-- [ ] `download_public.py` and `prepare_data.py` working; `data/SOURCES.md` filled in
-- [ ] At least 100 own photos per class collected, with metadata and drawer-based split
-- [ ] `reward.py` with passing unit tests
-- [ ] `train.py` Stage A runs to completion; metrics CSV written each epoch
-- [ ] `evaluate.py` prints accuracy, the confusion matrix, and the average reward
-- [ ] `learning_curve.py` results at 10/25/50/100%
-- [ ] `predict.py` terminal demo on a live photo
+- [x] Repo created with the structure above, plus README and requirements; environment verified on the tower (§4)
+- [x] `download_public.py` and `prepare_data.py` working; `data/SOURCES.md` filled in
+- [ ] At least 100 own photos per class collected, with metadata and drawer-based split (not an instructor requirement; moved to remaining work)
+- [x] `reward.py` with passing unit tests
+- [x] `train.py` Stage A runs to completion; metrics CSV written each epoch
+- [x] `evaluate.py` prints accuracy, the confusion matrix, and the average reward
+- [x] `learning_curve.py` results at 10/25/50/100%
+- [x] `predict.py` terminal demo on a live photo (plus the live Android app, `android/`)
 
 ### Lesson 41: Final (175 pts)
 
@@ -362,7 +362,7 @@ card_photo.jpg -> triangle (92.0%)   [unknown_symbol 2.6% | triangle 92.0% | qua
 - [ ] Threshold chosen from the precision-recall analysis, with justification
 - [ ] Error gallery and tactical-implications write-up (what failures mean for an operator)
 - [ ] Every team member can explain `datasets.py`, `models.py`, `train.py` and `reward.py`
-- [ ] Stretch: TFLite export plus a phone speed test (§12)
+- [x] Stretch: TFLite export plus a phone speed test (§12): `export_tflite.py`, Android app, ~18 ms per frame on the Pixel
 
 ---
 
@@ -427,5 +427,5 @@ What the existing app repo (`SOCOMIgnite2026`) does today, and what to change:
 1. ~~Exact GPU model and VRAM?~~ 2× RTX 4000 Ada, 20 GB each (2026-11-18). RAM: 251 GiB.
 2. ~~Is Python already installed on the tower?~~ Ubuntu with Python 3.10; Python 3.12 comes from `uv`. Still open: is the team allowed to install system software (`sudo apt`) on it?
 3. ~~Reward for a correctly predicted `unknown_symbol`?~~ 0.5, the literal rubric (2026-11-20).
-4. ~~GitHub repo and collaborators?~~ CarsonTitus/Symbol-Recognition- (owner CarsonTitus), partner SabrinaMcG (2026-11-20).
+4. ~~GitHub repo and collaborators?~~ CarsonTitus/Symbol-Recognition (owner CarsonTitus), partner SabrinaMcG (2026-11-20).
 5. Which teammate owns photo collection, training and the presentation?

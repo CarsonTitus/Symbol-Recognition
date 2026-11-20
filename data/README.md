@@ -8,7 +8,7 @@ Move data between machines with a USB drive or a shared drive, not git.
 
 ```
 data/
-  raw_public/          downloaded public datasets (scripts/download_public.py, coming next)
+  raw_public/          downloaded public datasets (made by scripts/download_public.py)
   raw_own/             our Pixel photos
     originals/         uncropped photos, kept for future "Step 1" detector work
     unknown_symbol/    cropped photos, one folder per class

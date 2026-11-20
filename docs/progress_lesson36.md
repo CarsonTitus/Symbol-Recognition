@@ -1,7 +1,7 @@
 # Lesson 36 Checkpoint: Progress Summary
 
 **Team:** Carson Titus, Sabrina McG<!-- TODO: Sabrina's full last name -->
-**Repository:** https://github.com/CarsonTitus/Symbol-Recognition- (tag `lesson36-checkpoint`)
+**Repository:** https://github.com/CarsonTitus/Symbol-Recognition (tag `lesson36-checkpoint`)
 
 ## Completed functionality
 
