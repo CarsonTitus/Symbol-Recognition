@@ -7,7 +7,7 @@ Revised 2026-11-20. Only **States**, **Actions** and **Reward** change; everythi
 Our first scope recognized one shape (a hand-drawn triangle) and called everything else "unknown." While building it we saw two problems:
 
 1. **One named shape is too narrow a proof of concept.** Real symbology has many distinct shapes. Naming three basic shapes (triangle, quadrilateral, ellipse) shows that the approach generalizes.
-2. **The capstone's real gap is objects vs. drawings.** The app's YOLO detector recognizes objects but not drawn shapes. Our classifier names the **outline of the main thing in a close-up**, whether it is drawn, painted, printed or a physical object (a ball is an ellipse, a window is a quadrilateral, a yield sign is a triangle).
+2. **The real gap is objects vs. drawings.** Ordinary object detectors (like YOLO) recognize objects but not drawn shapes. Our classifier names the **outline of the main thing in a close-up**, whether it is drawn, painted, printed or a physical object (a ball is an ellipse, a window is a quadrilateral, a yield sign is a triangle).
 
 3. **"No symbol" and "unknown" don't need to be separate.** For an operator, both mean "nothing I can name here," and keeping them apart added labeling work the assignment doesn't need. So anything that is not one of the three shapes, including a blank card, is "unknown / cannot identify."
 

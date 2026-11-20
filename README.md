@@ -11,7 +11,7 @@ CS471 Artificial Intelligence final project. This repo trains a CNN (convolution
 
 The classes were revised from three (no symbol / unknown / triangle) to these four on 2026-11-20, with the course's permission to revise the scope. There is no separate "no symbol" output: a blank card is simply "not one of the three shapes".
 
-It is "Step 2" (the classifier) of the PSYOP-VISR capstone app. The full project brief is in [`CLAUDE.md`](CLAUDE.md).
+It is "Step 2" of a two-step idea: Step 1 finds a mark, Step 2 (this CNN) names it. In the phone demo app, the user's aiming box stands in for Step 1. The full project brief is in [`CLAUDE.md`](CLAUDE.md).
 
 ## Results so far (Lesson 36 checkpoint)
 

@@ -72,7 +72,7 @@ def novel_shape_summary(y_pred, classes: list[str]) -> dict:
     """For never-seen shapes (true label is always unknown_symbol): share of each prediction.
 
     "called_unknown_symbol" is the good outcome. "called_a_named_shape" (triangle,
-    quadrilateral or ellipse) is a false alarm an operator would see in the glasses
+    quadrilateral or ellipse) is a false alarm an operator would see
     (CLAUDE.md §5c).
     """
     y_pred = np.asarray(y_pred, dtype=int)
