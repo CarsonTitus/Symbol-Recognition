@@ -7,7 +7,7 @@ What this does:
        turn it the right way up, pad to a square, resize to 224x224.
     3. Runs the model, which gives one probability per class (they add up to 100%).
     4. Prints one line per photo, e.g.
-         card_photo.jpg -> triangle (94.1%)   [no_symbol 1.2% | unknown_symbol 4.7% | triangle 94.1% | ...]
+         card_photo.jpg -> triangle (94.1%)   [unknown_symbol 4.7% | triangle 94.1% | quadrilateral 0.6% | ...]
        If the model's top probability is below the confidence threshold (0.6 by default,
        CLAUDE.md §3), the answer becomes unknown_symbol and the line says "unsure".
 
@@ -16,7 +16,7 @@ photo so the card or object fills most of the frame (this is what "Step 1" will 
 
 Usage (same in bash and PowerShell):
     python scripts/predict.py --run latest --image card_photo.jpg
-    python scripts/predict.py --run runs/20261120-082954_stage_a_five_classes --image photos/
+    python scripts/predict.py --run runs/20261120-094232_stage_a_four_classes --image photos/
     python scripts/predict.py --run latest --image a.jpg b.jpg --device cpu --threshold 0
 """
 from __future__ import annotations

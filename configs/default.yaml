@@ -15,31 +15,32 @@ paths:                        # all paths are relative to the repo root
   runs: runs
   results: results
 
-# The five outputs from the revised scope (CLAUDE.md §2-§3, TEAM DECISION 2026-11-20).
+# The four outputs from the revised scope (CLAUDE.md §2-§3, TEAM DECISION 2026-11-20).
 # A shape is the OUTLINE OF THE MAIN THING in the image: drawn, painted, printed,
 # or a real object (a ball is an ellipse, a kite or window a quadrilateral).
-# ORDER MATTERS: index 0..4 are the model's output positions and the
+# Anything that is not one of the three shapes is unknown_symbol, INCLUDING images
+# with no shape at all (a blank card, a wall, a plant). There is no separate
+# "no symbol" output: the team dropped it as complexity the assignment doesn't need.
+# ORDER MATTERS: index 0..3 are the model's output positions and the
 # rows/columns of the reward matrix below.
 classes:
-  - no_symbol         # no clear shape: blank surface, texture, clutter, irregular things (a plant)
-  - unknown_symbol    # a clear shape or mark that is none of the three below (star, arrow, hexagon)
+  - unknown_symbol    # not one of the three shapes: star, arrow, hexagon, blank card, wall, plant...
   - triangle
   - quadrilateral     # any 4-sided shape: square, rectangle, diamond, kite, trapezoid...
   - ellipse           # circles and ovals (nobody draws a perfect circle)
 
 # Reward matrix: rows = TRUE label, columns = PREDICTED label (same order as classes).
 # Follows the rubric (CLAUDE.md §2):
-#   correct "no symbol" = 1.0, "detected but cannot identify" = 0.5,
-#   "detected and identified" (right shape name) = 1.0, anything wrong = 0.0
+#   "cannot identify" (unknown_symbol) = 0.5, right shape name = 1.0, anything wrong = 0.0
 # Naming the WRONG shape (a triangle called an ellipse) is wrong, so 0.0.
 # TEAM DECISION (2026-11-20): a correct unknown_symbol stays at 0.5 (the literal rubric).
+# To count it as +1, change ONLY the 0.5 in the first row and say so in the presentation.
 reward_matrix:
-  #  pred: no_symbol unknown triangle quadrilateral ellipse
-  - [1.0, 0.0, 0.0, 0.0, 0.0]   # true no_symbol
-  - [0.0, 0.5, 0.0, 0.0, 0.0]   # true unknown_symbol
-  - [0.0, 0.5, 1.0, 0.0, 0.0]   # true triangle
-  - [0.0, 0.5, 0.0, 1.0, 0.0]   # true quadrilateral
-  - [0.0, 0.5, 0.0, 0.0, 1.0]   # true ellipse
+  #  pred: unknown triangle quadrilateral ellipse
+  - [0.5, 0.0, 0.0, 0.0]   # true unknown_symbol
+  - [0.5, 1.0, 0.0, 0.0]   # true triangle
+  - [0.5, 0.0, 1.0, 0.0]   # true quadrilateral
+  - [0.5, 0.0, 0.0, 1.0]   # true ellipse
 
 # Safety net (CLAUDE.md §3): if the model's top confidence is below this,
 # report unknown_symbol instead of guessing. Results are reported with and without it.
@@ -59,9 +60,9 @@ prepare:
 
 # Public datasets (CLAUDE.md §5a). scripts/download_public.py downloads them into
 # paths.raw_public; scripts/prepare_data.py uses each class_map to sort their
-# images into our five classes. A source class NOT listed in its class_map is skipped.
+# images into our four classes. A source class NOT listed in its class_map is skipped.
 #
-# TEAM DECISION (2026-11-20): five outputs (see classes above).
+# TEAM DECISION (2026-11-20): four outputs (see classes above).
 #   triangles                                                -> triangle
 #   quadrilaterals (square, rectangle, rhombus/diamond, kite,
 #                   parallelogram, trapezoid)                 -> quadrilateral
@@ -73,7 +74,7 @@ prepare:
 #   octagons and smiley faces (a sloppy octagon or a smiley's outline is basically an ellipse),
 #   Quick Draw "diamond" (1 in 4 is a triangle-shaped gem, see below),
 #   triangle-like objects (mountain, tent, pizza).
-# Shapes are never put in no_symbol: that class means "no clear shape here".
+# Images with no shape at all (blank backgrounds) are unknown_symbol too.
 # Real-world OBJECT photos (balls, signs, windows...) come next: own photos + datasets TBD.
 public_data:
   hds:                        # Hand-Drawn Shapes, CC BY 4.0, 70x70 drawings by 37 people
@@ -105,9 +106,9 @@ public_data:
   hf_geometric_shapes:        # Hugging Face 0-ma/geometric-shapes, MIT license, 50x50 synthetic
     repo_id: 0-ma/geometric-shapes
     # Label names are "1".."6"; "1" means text on a colored background with NO shape.
-    # Only that one is used (as a minority of no_symbol); its shapes are not hand-drawn.
+    # Only that one is used (blank backgrounds = a minority of unknown_symbol); its shapes are not hand-drawn.
     class_map:
-      "1": no_symbol
+      "1": unknown_symbol
   kaggle:                     # need a Kaggle API token (README); skipped if none is set up
     geometric_shapes_mathematics:  # CC0, 224x224 computer-generated "hand-drawn-style" outlines (Perlin noise)
       slug: reevald/geometric-shapes-mathematics

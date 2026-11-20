@@ -2,7 +2,7 @@
 test_metrics.py - check the confusion matrix, precision/recall/F1 and novel-shape numbers by hand.
 
 Run with:  pytest
-Labels: 0 = no_symbol, 1 = unknown_symbol, 2 = triangle.
+Labels: 0 = unknown_symbol, 1 = triangle, 2 = ellipse (a smaller 3-class example keeps the math short).
 """
 import numpy as np
 import pytest
@@ -10,9 +10,9 @@ import pytest
 from symbolcnn.metrics import (accuracy, confusion_matrix, novel_shape_summary, per_class_stats,
                                row_percentages)
 
-CLASSES = ["no_symbol", "unknown_symbol", "triangle"]
+CLASSES = ["unknown_symbol", "triangle", "ellipse"]
 
-# 6 images: 2 of each true class. Mistakes: one unknown called triangle, one triangle called unknown.
+# 6 images: 2 of each true class. Mistakes: one ellipse called triangle, one triangle called ellipse.
 Y_TRUE = [0, 0, 1, 1, 2, 2]
 Y_PRED = [0, 0, 1, 2, 2, 1]
 
@@ -39,7 +39,8 @@ def test_precision_recall_f1():
     assert stats["triangle"]["precision"] == pytest.approx(0.5)
     assert stats["triangle"]["recall"] == pytest.approx(0.5)
     assert stats["triangle"]["f1"] == pytest.approx(0.5)
-    assert stats["no_symbol"]["precision"] == stats["no_symbol"]["recall"] == stats["no_symbol"]["f1"] == 1.0
+    u = stats["unknown_symbol"]
+    assert u["precision"] == u["recall"] == u["f1"] == 1.0
     assert stats["triangle"]["images"] == 2
 
 
@@ -54,15 +55,15 @@ def test_accuracy():
 
 
 def test_novel_shape_summary():
-    summary = novel_shape_summary([1, 1, 1, 2], CLASSES)   # 3 called unknown, 1 false alarm
+    summary = novel_shape_summary([0, 0, 0, 1], CLASSES)   # 3 called unknown, 1 false alarm
     assert summary["called_unknown_symbol"] == pytest.approx(0.75)
     assert summary["called_triangle"] == pytest.approx(0.25)
-    assert summary["called_no_symbol"] == 0.0
+    assert summary["called_ellipse"] == 0.0
     assert summary["called_a_named_shape"] == pytest.approx(0.25)
     assert summary["images"] == 4
 
 
 def test_novel_shape_false_alarms_count_every_named_shape():
-    classes = ["no_symbol", "unknown_symbol", "triangle", "quadrilateral", "ellipse"]
-    summary = novel_shape_summary([1, 2, 3, 4], classes)   # 1 good answer, 3 false alarms
+    classes = ["unknown_symbol", "triangle", "quadrilateral", "ellipse"]
+    summary = novel_shape_summary([0, 1, 2, 3], classes)   # 1 good answer, 3 false alarms
     assert summary["called_a_named_shape"] == pytest.approx(0.75)

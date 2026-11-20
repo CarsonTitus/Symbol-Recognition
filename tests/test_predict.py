@@ -19,7 +19,7 @@ predict = importlib.util.module_from_spec(_spec)
 sys.modules["predict"] = predict
 _spec.loader.exec_module(predict)
 
-CLASSES = ["no_symbol", "unknown_symbol", "triangle", "quadrilateral", "ellipse"]
+CLASSES = ["unknown_symbol", "triangle", "quadrilateral", "ellipse"]
 
 
 @pytest.fixture
@@ -57,12 +57,12 @@ def test_threshold_one_always_answers_unknown(runs, photos):
 
 
 def test_output_line_format():
-    probs = np.array([0.012, 0.047, 0.941, 0.0, 0.0])
+    probs = np.array([0.047, 0.941, 0.006, 0.006])
     answer, line = predict.describe("card_photo.jpg", probs, CLASSES, threshold=0.6)
     assert answer == "triangle"
-    assert line.startswith("card_photo.jpg -> triangle (94.1%)   [no_symbol 1.2% | unknown_symbol 4.7% |")
+    assert line.startswith("card_photo.jpg -> triangle (94.1%)   [unknown_symbol 4.7% | triangle 94.1% |")
     # Not confident enough -> the safety net answers unknown_symbol and says why.
-    answer, line = predict.describe("x.jpg", np.array([0.1, 0.1, 0.5, 0.2, 0.1]), CLASSES, threshold=0.6)
+    answer, line = predict.describe("x.jpg", np.array([0.2, 0.5, 0.2, 0.1]), CLASSES, threshold=0.6)
     assert answer == "unknown_symbol" and "unsure: best guess triangle 50.0%" in line
 
 

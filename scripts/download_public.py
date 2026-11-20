@@ -7,7 +7,7 @@ What this does:
       quickdraw  Google Quick, Draw!: the first 3000 doodles of 12 shape
                  categories (only the part of each file we need, ~2 MB each)
       hf         Hugging Face "0-ma/geometric-shapes": synthetic images,
-                 used for "no symbol" examples                             (~25 MB)
+                 used for "blank background" examples                             (~25 MB)
       kaggle     Two Kaggle datasets. Needs a Kaggle API token (README);
                  without one this part is skipped with a message, not an error.
     Each dataset goes in its own folder with a _download_info.json file

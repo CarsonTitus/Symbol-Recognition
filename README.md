@@ -1,16 +1,15 @@
 # Symbol Recognition CNN
 
-CS471 Artificial Intelligence final project. This repo trains a CNN (convolutional neural network) that looks at a close-up image and names the **outline shape of the main thing in it**, whether that thing is drawn, painted, printed or a real object (a ball is an ellipse; a kite or a window is a quadrilateral). Each image gets one of five labels:
+CS471 Artificial Intelligence final project. This repo trains a CNN (convolutional neural network) that looks at a close-up image and names the **outline shape of the main thing in it**, whether that thing is drawn, painted, printed or a real object (a ball is an ellipse; a kite or a window is a quadrilateral). Each image gets one of four labels:
 
 | Output | Meaning | Examples |
 |---|---|---|
-| `no_symbol` | no clear shape | blank card, wall, carpet, clutter, a plant |
-| `unknown_symbol` | a clear shape or mark, but not one of the three below | star, arrow, hexagon, zigzag |
+| `unknown_symbol` | anything that is not one of the three shapes, including no shape at all | star, arrow, hexagon, zigzag; blank card, wall, carpet, a plant |
 | `triangle` | a triangle | drawn triangle, yield sign, any triangle type |
 | `quadrilateral` | any 4-sided shape | square, rectangle, diamond, kite, window, card |
 | `ellipse` | a circle or oval | drawn circle, ball, plate, clock |
 
-The classes were revised from three (no symbol / unknown / triangle) to these five on 2026-11-20, with the course's permission to revise the scope.
+The classes were revised from three (no symbol / unknown / triangle) to these four on 2026-11-20, with the course's permission to revise the scope. There is no separate "no symbol" output: a blank card is simply "not one of the three shapes".
 
 It is "Step 2" (the classifier) of the PSYOP-VISR capstone app. The full project brief is in [`CLAUDE.md`](CLAUDE.md).
 
@@ -172,7 +171,7 @@ This downloads about 320 MB into `data/raw_public/` (which git ignores) and take
 |---|---|---|
 | `hds/` | Hand-Drawn Shapes | 27,292 drawings by 37 people: triangle, rectangle, ellipse, other |
 | `quickdraw/` | Google Quick, Draw! | the first 3,000 doodles of 12 shape categories (only that part of each file is downloaded) |
-| `hf_geometric_shapes/` | Hugging Face `0-ma/geometric-shapes` | synthetic images; the "text only, no shape" ones become `no_symbol` |
+| `hf_geometric_shapes/` | Hugging Face `0-ma/geometric-shapes` | synthetic images; the "text only, no shape" ones become blank-background examples of `unknown_symbol` |
 | `kaggle/` | two Kaggle datasets | needs a Kaggle API token (below); skipped without one |
 
 Running it again skips anything already downloaded. Use `--force` to download again, and `--sources hds quickdraw` to choose specific datasets. Which datasets and categories are used, and which of our classes each maps to, is set under `public_data:` in `configs/default.yaml`.
@@ -297,7 +296,7 @@ python scripts/predict.py --run latest --image path/to/card_photo.jpg
 `--run latest` uses the newest finished training run in `runs/`; you can also give a run folder. `--image` takes one or more files and/or folders. Each photo gets one line:
 
 ```
-card_photo.jpg -> triangle (92.0%)   [no_symbol 2.0% | unknown_symbol 2.1% | triangle 92.0% | quadrilateral 2.1% | ellipse 1.7%]
+card_photo.jpg -> triangle (92.0%)   [unknown_symbol 2.6% | triangle 92.0% | quadrilateral 2.9% | ellipse 2.5%]
 ```
 
 - **Crop the photo first** so the card or object fills most of the frame. The model names the outline of the *main* thing in the image.
@@ -318,15 +317,14 @@ Change a setting in the YAML file, not in the Python code. Each training run sav
 
 ### Reward matrix (from the revised scope)
 
-| True \ Predicted | no_symbol | unknown_symbol | triangle | quadrilateral | ellipse |
-|---|---|---|---|---|---|
-| no_symbol | **1.0** | 0.0 | 0.0 | 0.0 | 0.0 |
-| unknown_symbol | 0.0 | **0.5** | 0.0 | 0.0 | 0.0 |
-| triangle | 0.0 | 0.5 | **1.0** | 0.0 | 0.0 |
-| quadrilateral | 0.0 | 0.5 | 0.0 | **1.0** | 0.0 |
-| ellipse | 0.0 | 0.5 | 0.0 | 0.0 | **1.0** |
+| True \ Predicted | unknown_symbol | triangle | quadrilateral | ellipse |
+|---|---|---|---|---|
+| unknown_symbol | **0.5** | 0.0 | 0.0 | 0.0 |
+| triangle | 0.5 | **1.0** | 0.0 | 0.0 |
+| quadrilateral | 0.5 | 0.0 | **1.0** | 0.0 |
+| ellipse | 0.5 | 0.0 | 0.0 | **1.0** |
 
-In words: naming the right shape or correctly saying "no symbol" earns +1; "symbol detected but cannot identify" earns +0.5; anything wrong (including naming the wrong shape) earns 0. Results report the average reward and the **reward as a percentage of the best possible**, because a correct `unknown_symbol` can only earn 0.5.
+In words: naming the right shape earns +1; "unknown / cannot identify" earns +0.5; anything wrong (naming the wrong shape, or naming a shape when there isn't one) earns 0. Results report the average reward and the **reward as a percentage of the best possible**, because a correct `unknown_symbol` can only earn 0.5.
 
 ## Repository layout
 
@@ -352,7 +350,7 @@ runs/               one folder per training run: NOT in git
 - [x] Kaggle datasets downloaded, mapped and licenses verified in `data/SOURCES.md` (both CC0)
 - [ ] At least 100 own photos per class, with metadata
 - [x] `train.py` written and tested on CPU
-- [x] `train.py` Stage A full run on the tower GPU (5 classes: 99.3% on validation drawings)
+- [x] `train.py` Stage A full run on the tower GPU (4 classes)
 - [x] `evaluate.py`
 - [x] `learning_curve.py` (10/25/50/100%)
 - [x] `predict.py` demo

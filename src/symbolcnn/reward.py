@@ -3,11 +3,10 @@ reward.py - score the model's predictions with the submitted reward rubric.
 
 What this does:
     The CS471 scope (CLAUDE.md §2) promises a reward for every image:
-        correct "no symbol"                      -> +1
-        "symbol detected but cannot identify"    -> +0.5
+        "cannot identify" (unknown_symbol)       -> +0.5  (also blank cards, walls: not one of the shapes)
         "symbol detected: <shape>" (right shape) -> +1   (triangle, quadrilateral or ellipse)
         anything incorrect                       -> +0   (including naming the wrong shape)
-    These numbers live in a 5x5 "reward matrix" in configs/default.yaml:
+    These numbers live in a 4x4 "reward matrix" in configs/default.yaml:
     row = the TRUE label, column = the model's PREDICTED label.
 
     This file turns lists of true and predicted labels into:
@@ -21,8 +20,8 @@ Why "percent of max":
     1.0 whenever unknown symbols are present. Percent-of-max makes runs on
     different datasets comparable (CLAUDE.md §2 notes).
 
-Labels are class INDEXES (0..4) in the order of config "classes":
-    0 = no_symbol, 1 = unknown_symbol, 2 = triangle, 3 = quadrilateral, 4 = ellipse
+Labels are class INDEXES (0..3) in the order of config "classes":
+    0 = unknown_symbol, 1 = triangle, 2 = quadrilateral, 3 = ellipse
 Only NumPy is used, so the unit tests run fast without PyTorch.
 """
 from __future__ import annotations
