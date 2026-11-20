@@ -13,6 +13,23 @@ The classes were revised from three (no symbol / unknown / triangle) to these fo
 
 It is "Step 2" (the classifier) of the PSYOP-VISR capstone app. The full project brief is in [`CLAUDE.md`](CLAUDE.md).
 
+## Results so far (Lesson 36 checkpoint)
+
+| Measure | Result |
+|---|---|
+| Validation accuracy (public drawings, 10,340 images) | **99.43%** |
+| Validation reward | **99.62%** of the best possible |
+| Learning curve: accuracy with 10% / 25% / 50% / 100% of the training data | 95.8% / 98.6% / 99.3% / 99.3% |
+| Speed on the Pixel 9 Pro XL (live camera, offline) | about **18 ms** per frame |
+
+<p>
+<img src="results/lesson36/confusion_matrix_val.png" alt="Confusion matrix on validation images" width="420">
+<img src="results/lesson36/phone_demo_triangle.jpg" alt="Phone app reading a hand-drawn triangle as TRIANGLE 90%" width="200">
+<img src="results/lesson36/phone_demo_bottle_unknown.jpg" alt="Phone app answering UNKNOWN for a round bottle bottom" width="200">
+</p>
+
+Left to right: the confusion matrix on validation images; the phone app reading a hand-drawn triangle; and a current weakness. A real round object (a bottle bottom held in a hand) comes out as **unknown**, because training so far used only drawings and silhouettes. These numbers are on public drawings. The honest **test** score comes from our own photos, which we're collecting next (Stage B). More plots: [`results/lesson36/`](results/lesson36/).
+
 ## Setup
 
 You need Python **3.11 or 3.12** and `git`. PyTorch is installed **separately** from `requirements.txt` because the right build depends on whether the computer has an NVIDIA GPU. Data and trained models are **not** in git: the scripts below download and build them.
@@ -38,11 +55,11 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 Get the code and create the virtual environment (a private folder of packages for this project):
 
 ```bash
-git clone https://github.com/CarsonTitus/Symbol-Recognition-.git
+git clone https://github.com/CarsonTitus/Symbol-Recognition.git
 ```
 
 ```bash
-cd Symbol-Recognition-
+cd Symbol-Recognition
 ```
 
 ```bash
@@ -77,7 +94,7 @@ python scripts/check_env.py --download-weights
 
 It lists the Python and PyTorch versions and any GPUs, downloads the pretrained MobileNetV3 weights, and ends with `All checks passed.`
 
-**Every new terminal:** `cd Symbol-Recognition-` then `source .venv/bin/activate` before running anything. The prompt starts with `(.venv)` when it's active.
+**Every new terminal:** `cd Symbol-Recognition` then `source .venv/bin/activate` before running anything. The prompt starts with `(.venv)` when it's active.
 
 ### Windows (PowerShell)
 
@@ -90,11 +107,11 @@ powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | ie
 Close and reopen PowerShell, then:
 
 ```powershell
-git clone https://github.com/CarsonTitus/Symbol-Recognition-.git
+git clone https://github.com/CarsonTitus/Symbol-Recognition.git
 ```
 
 ```powershell
-cd Symbol-Recognition-
+cd Symbol-Recognition
 ```
 
 ```powershell
@@ -224,7 +241,7 @@ Useful variations:
 Open a **second terminal** while training runs:
 
 ```bash
-cd Symbol-Recognition-
+cd Symbol-Recognition
 ```
 
 ```bash
@@ -395,6 +412,7 @@ The written progress summary is in [`docs/progress_lesson36.md`](docs/progress_l
 - [x] `evaluate.py`
 - [x] `learning_curve.py` (10/25/50/100%)
 - [x] `predict.py` demo
+- [x] Phone demo: `export_tflite.py` and the Android app (`android/`), live on the Pixel 9 Pro XL
 
 ## Data credits
 
